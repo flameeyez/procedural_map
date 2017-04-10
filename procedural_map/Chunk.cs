@@ -2,6 +2,7 @@
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -12,7 +13,7 @@ using Windows.UI;
 
 namespace procedural_map {
     class Chunk {
-        public static int ChunkSideLength = 10;
+        public static int ChunkSideLength = 100;
         public static int ChunkSideInPixels { get { return ChunkSideLength * Map.TILE_RESOLUTION; } }
         public static int MaxChunksVisibleX = Statics.ClientWidth / ChunkSideInPixels + 1;
         public static int MaxChunksVisibleY = Statics.ClientHeight / ChunkSideInPixels + 1;
@@ -38,19 +39,15 @@ namespace procedural_map {
             ChunkCoordinateY = chunkCoordinateY;
         }
 
-        // surface
-        // procedural create (global seed, noise)
-        // render target
-        // draw (position from offset)
-
         public void Draw(CanvasAnimatedDrawEventArgs args) {
             if (IsOnScreen()) {
-                Statics.DebugIsOnScreenCount++;
+                Debug.OnScreenChunkCount++;
                 args.DrawingSession.DrawImage(RenderTarget, new Vector2(RelativePositionX, RelativePositionY));
             }
         }
 
         public static Chunk Create(CanvasDevice device, int chunkCoordinateX, int chunkCoordinateY) {
+            Stopwatch s = Stopwatch.StartNew();
             Chunk chunk = new Chunk(device, chunkCoordinateX, chunkCoordinateY);
             chunk.Tiles = new Tile[ChunkSideLength, ChunkSideLength];
 
@@ -61,17 +58,21 @@ namespace procedural_map {
             }
 
             // draw chunk to render target
+            Color _debugBackgroundColor = Statics.RandomColor();
             chunk.RenderTarget = new CanvasRenderTarget(device, ChunkSideInPixels, ChunkSideInPixels, 96);
             using (CanvasDrawingSession ds = chunk.RenderTarget.CreateDrawingSession()) {
                 for (int x = 0; x < ChunkSideLength; x++) {
                     for (int y = 0; y < ChunkSideLength; y++) {
-                        ds.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Green);
+                        // TODO: replace with elevation color/tile
+                        ds.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), _debugBackgroundColor);
                         ds.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
-                        ds.DrawText(chunk.ChunkCoordinateX.ToString() + "," + chunk.ChunkCoordinateY.ToString(), new Vector2(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION), Colors.White);
+                        // ds.DrawText(chunk.ChunkCoordinateX.ToString() + "," + chunk.ChunkCoordinateY.ToString(), new Vector2(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION), Colors.White);
                     }
                 }
             }
 
+            s.Stop();
+            Debug.ChunkLoadTimes.Add(s.ElapsedMilliseconds);
             return chunk;
         }
     }

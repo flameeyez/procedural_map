@@ -8,7 +8,7 @@ namespace procedural_map {
     static class Camera {
         public static int PositionX { get; set; }
         public static int PositionY { get; set; }
-        private static int _velocity = 5;
+        private static int _velocity = 15;
 
         internal static void KeyDown(VirtualKey vk) {
             switch (vk) {
@@ -25,6 +25,15 @@ namespace procedural_map {
                     PositionX += _velocity;
                     break;
             }
+        }
+
+        public static string ToString() {
+            StringBuilder sb = new StringBuilder("{");
+            sb.Append(PositionX.ToString());
+            sb.Append(", ");
+            sb.Append(PositionY.ToString());
+            sb.Append("}");
+            return sb.ToString();
         }
     }
 }

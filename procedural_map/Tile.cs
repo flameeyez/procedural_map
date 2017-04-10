@@ -10,7 +10,7 @@ namespace procedural_map {
         // public List<Event> Events = new List<Event>();
 
         public Tile(int chunkCoordinateX, int chunkCoordinateY, int tileCoordinateX, int tileCoordinateY) {
-            // TODO: replace with procedural elevation
+            // TODO: replace with procedural elevation (global seed, noise)
             Elevation = 1;
         }
 

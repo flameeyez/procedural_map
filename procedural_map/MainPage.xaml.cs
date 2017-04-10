@@ -48,34 +48,13 @@ namespace procedural_map {
             }
         }
 
-        private List<string> DebugStrings = new List<string>();
-        private string strDebugDrawTime = string.Empty;
-        private string strDebugUpdateTime = string.Empty;
-
         private void canvasMain_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) {
-            Statics.DebugIsOnScreenCount = 0;
-
             Stopwatch s = Stopwatch.StartNew();
             Map.Draw(args);
-            DrawDebug(args);
+            Debug.Draw(args);
             s.Stop();
 
-            strDebugDrawTime = s.ElapsedMilliseconds.ToString();
-        }
-
-        private void DrawDebug(CanvasAnimatedDrawEventArgs args) {
-            int x = 1500;
-            int y = 20;
-
-            DebugStrings.Clear();
-            DebugStrings.Add("Draw: " + strDebugDrawTime + "ms");
-            DebugStrings.Add("Update: " + strDebugUpdateTime + "ms");
-            DebugStrings.Add("Chunks on screen: " + Statics.DebugIsOnScreenCount.ToString());
-
-            foreach (string str in DebugStrings) {
-                args.DrawingSession.DrawText(str, new Vector2(x, y), Colors.White);
-                y += 20;
-            }
+            Debug.LastDrawTime = s.ElapsedMilliseconds.ToString();
         }
 
         private void canvasMain_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) {
@@ -83,7 +62,8 @@ namespace procedural_map {
             Map.Update(args);
             s.Stop();
 
-            strDebugUpdateTime = s.ElapsedMilliseconds.ToString();
+            Debug.LastUpdateTime = s.ElapsedMilliseconds.ToString();
+            Debug.Update(args);
         }
 
         private void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {

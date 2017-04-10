@@ -97,6 +97,7 @@
     </Compile>
     <Compile Include="Camera.cs" />
     <Compile Include="Chunk.cs" />
+    <Compile Include="Debug.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Event.cs" />
     <Compile Include="Layer.cs" />

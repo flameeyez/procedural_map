@@ -1,0 +1,11 @@
+when to load
+when to unload
+how long to load - DONE
+how long to unload
+how long to load/unload other sizes
+loading/unloading async
+
+load when camera(?) moves
+move right:
+- track coordinates in cache
+- check that next chunk (off-camera) is loaded, or load async

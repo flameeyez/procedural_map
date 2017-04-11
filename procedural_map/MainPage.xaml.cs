@@ -10,6 +10,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
+using Windows.UI.Input;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -19,13 +20,10 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
-// The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
-
 namespace procedural_map {
-    /// <summary>
-    /// An empty page that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class MainPage : Page {
+        Stopwatch fullLoopTimer;
+
         public MainPage() {
             this.InitializeComponent();
 
@@ -45,16 +43,32 @@ namespace procedural_map {
                 case Windows.System.VirtualKey.Down:
                     Camera.KeyDown(args.VirtualKey);
                     break;
+                case Windows.System.VirtualKey.A:
+                    Debug.TimedStrings.Add(new TimedString("Test string"));
+                    break;
+                case Windows.System.VirtualKey.R:
+                    Debug.MaxFullLoopTime = 0;
+                    Debug.SlowFrames = 0;
+                    break;
             }
         }
 
         private void canvasMain_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) {
+            if(fullLoopTimer != null) {
+                fullLoopTimer.Stop();
+                Debug.LastFullLoopTime = fullLoopTimer.ElapsedMilliseconds;
+                if(Debug.LastFullLoopTime > Debug.MaxFullLoopTime) { Debug.MaxFullLoopTime = Debug.LastFullLoopTime; }
+                if(fullLoopTimer.ElapsedMilliseconds > canvasMain.TargetElapsedTime.TotalMilliseconds) { Debug.SlowFrames++; }
+            }
+
+            fullLoopTimer = Stopwatch.StartNew();
+
             Stopwatch s = Stopwatch.StartNew();
             Map.Draw(args);
             Debug.Draw(args);
             s.Stop();
 
-            Debug.LastDrawTime = s.ElapsedMilliseconds.ToString();
+            Debug.LastDrawTime = s.ElapsedMilliseconds;
         }
 
         private void canvasMain_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) {
@@ -62,8 +76,13 @@ namespace procedural_map {
             Map.Update(args);
             s.Stop();
 
-            Debug.LastUpdateTime = s.ElapsedMilliseconds.ToString();
+            Debug.LastUpdateTime = s.ElapsedMilliseconds;
+
+            Stopwatch d = Stopwatch.StartNew();
             Debug.Update(args);
+            d.Stop();
+
+            Debug.LastDebugUpdateTime = d.ElapsedMilliseconds;
         }
 
         private void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {
@@ -71,7 +90,25 @@ namespace procedural_map {
         }
 
         private void canvasMain_PointerMoved(object sender, PointerRoutedEventArgs e) {
+            PointerPoint p = e.GetCurrentPoint(canvasMain);
+            Mouse.X = p.Position.X;
+            Mouse.Y = p.Position.Y;
+            if (Mouse.LeftButtonDown) {
+                Camera.PositionX -= Mouse.DeltaX;
+                Camera.PositionY -= Mouse.DeltaY;
+            }
+        }
 
+        private void canvasMain_PointerPressed(object sender, PointerRoutedEventArgs e) {
+            PointerPoint p = e.GetCurrentPoint(canvasMain);
+            Mouse.LeftButtonDown = p.Properties.IsLeftButtonPressed;
+            Mouse.RightButtonDown = p.Properties.IsRightButtonPressed;
+        }
+
+        private void canvasMain_PointerReleased(object sender, PointerRoutedEventArgs e) {
+            PointerPoint p = e.GetCurrentPoint(canvasMain);
+            Mouse.LeftButtonDown = p.Properties.IsLeftButtonPressed;
+            Mouse.RightButtonDown = p.Properties.IsRightButtonPressed;
         }
     }
 }

@@ -13,6 +13,7 @@ using Windows.UI;
 
 namespace procedural_map {
     class Chunk {
+        public static object CacheLock = new object();
         public static int ChunkSideLength = 100;
         public static int ChunkSideInPixels { get { return ChunkSideLength * Map.TILE_RESOLUTION; } }
         public static int MaxChunksVisibleX = Statics.ClientWidth / ChunkSideInPixels + 1;
@@ -22,11 +23,11 @@ namespace procedural_map {
 
         public int ChunkCoordinateX { get; set; }
         public int ChunkCoordinateY { get; set; }
-        public long PixelCoordinateX { get { return ChunkCoordinateX * ChunkSideInPixels; } }
-        public long PixelCoordinateY { get { return ChunkCoordinateY * ChunkSideInPixels; } }
+        public double PixelCoordinateX { get { return ChunkCoordinateX * ChunkSideInPixels; } }
+        public double PixelCoordinateY { get { return ChunkCoordinateY * ChunkSideInPixels; } }
 
-        public long RelativePositionX { get { return PixelCoordinateX - Camera.PositionX; } }
-        public long RelativePositionY { get { return PixelCoordinateY - Camera.PositionY; } }
+        public double RelativePositionX { get { return PixelCoordinateX - Camera.PositionX; } }
+        public double RelativePositionY { get { return PixelCoordinateY - Camera.PositionY; } }
 
         public Tile[,] Tiles;
         public bool IsOnScreen() {
@@ -42,7 +43,7 @@ namespace procedural_map {
         public void Draw(CanvasAnimatedDrawEventArgs args) {
             if (IsOnScreen()) {
                 Debug.OnScreenChunkCount++;
-                args.DrawingSession.DrawImage(RenderTarget, new Vector2(RelativePositionX, RelativePositionY));
+                args.DrawingSession.DrawImage(RenderTarget, new Vector2((float)RelativePositionX, (float)RelativePositionY));
             }
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Microsoft.Graphics.Canvas;
+using System.Threading.Tasks;
 
 namespace procedural_map {
     static class Map {
@@ -12,22 +13,31 @@ namespace procedural_map {
         public static int DebugChunkCount { get { return ChunkCache.Count; } }
 
         public static void Draw(CanvasAnimatedDrawEventArgs args) {
-            foreach (Chunk chunk in ChunkCache.Values) { chunk.Draw(args); }
+            lock (Chunk.CacheLock) {
+                foreach (Chunk chunk in ChunkCache.Values) { chunk.Draw(args); }
+            }
         }
 
         public static void Update(CanvasAnimatedUpdateEventArgs args) {
             // remove stale chunks
         }
 
-        public static void Initialize(CanvasDevice device) {
-            // load initial chunks; center on 0,0
+        public async static void Initialize(CanvasDevice device) {
+            Chunk c = await Task.Run(() => Chunk.Create(device, 0, 0));
+            lock (Chunk.CacheLock) {
+                ChunkCache.Add(new Point(0, 0), c);
+            }
 
             int initialChunks = 5;
-
-            // load -1,-1 through 1,1
+            // load {-initialChunks, -initialChunks} through {initialChunks, initialChunks}
             for (int i = -initialChunks; i <= initialChunks; i++) {
                 for (int j = -initialChunks; j <= initialChunks; j++) {
-                    ChunkCache.Add(new Point(i, j), Chunk.Create(device, i, j));
+                    if (i == 0 && j == 0) { continue; }
+                    Debug.AddTimedString("Creating chunk: {" + i.ToString() + ", " + j.ToString() + "}");
+                    c = await Task.Run(() => Chunk.Create(device, i, j));
+                    lock (Chunk.CacheLock) {
+                        ChunkCache.Add(new Point(i, j), c);
+                    }
                 }
             }
         }

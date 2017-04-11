@@ -9,6 +9,13 @@
     mc:Ignorable="d">
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <canvas:CanvasAnimatedControl x:Name="canvasMain" Draw="canvasMain_Draw" Update="canvasMain_Update" ClearColor="Black" CreateResources="canvasMain_CreateResources" PointerMoved="canvasMain_PointerMoved" />
+        <canvas:CanvasAnimatedControl x:Name="canvasMain" 
+            Draw="canvasMain_Draw" 
+            Update="canvasMain_Update"
+            ClearColor="Black" 
+            CreateResources="canvasMain_CreateResources"
+            PointerMoved="canvasMain_PointerMoved"
+            PointerPressed="canvasMain_PointerPressed"
+            PointerReleased="canvasMain_PointerReleased"  />
     </Grid>
 </Page>

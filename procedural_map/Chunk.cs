@@ -14,7 +14,7 @@ using Windows.UI;
 namespace procedural_map {
     class Chunk {
         public static object CacheLock = new object();
-        public static int ChunkSideLength = 100;
+        public static int ChunkSideLength = 50;
         public static int ChunkSideInPixels { get { return ChunkSideLength * Map.TILE_RESOLUTION; } }
         public static int MaxChunksVisibleX = Statics.ClientWidth / ChunkSideInPixels + 1;
         public static int MaxChunksVisibleY = Statics.ClientHeight / ChunkSideInPixels + 1;
@@ -47,7 +47,7 @@ namespace procedural_map {
             }
         }
 
-        public static Chunk Create(CanvasDevice device, int chunkCoordinateX, int chunkCoordinateY) {
+        public async static Task<Chunk> Create(CanvasDevice device, int chunkCoordinateX, int chunkCoordinateY) {
             Stopwatch s = Stopwatch.StartNew();
             Chunk chunk = new Chunk(device, chunkCoordinateX, chunkCoordinateY);
             chunk.Tiles = new Tile[ChunkSideLength, ChunkSideLength];
@@ -69,6 +69,8 @@ namespace procedural_map {
                         ds.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
                         // ds.DrawText(chunk.ChunkCoordinateX.ToString() + "," + chunk.ChunkCoordinateY.ToString(), new Vector2(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION), Colors.White);
                     }
+
+                    await Task.Yield();
                 }
             }
 

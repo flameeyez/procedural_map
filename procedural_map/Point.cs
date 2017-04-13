@@ -9,5 +9,12 @@ namespace procedural_map {
         public int X { get; set; }
         public int Y { get; set; }
         public Point(int x, int y) { X = x; Y = y; }
+        public override bool Equals(object obj) {
+            Point compare = (Point)obj;
+            return (compare.X == X && compare.Y == Y);
+        }
+        public override int GetHashCode() {
+            return X.GetHashCode() * 17 + Y.GetHashCode();
+        }
     }
 }

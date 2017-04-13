@@ -9,6 +9,13 @@ using Windows.UI;
 
 namespace procedural_map {
     static class Debug {
+        public enum DRAW_MODE {
+            BACKGROUND_COLOR,
+            ELEVATION
+        }
+
+        public static DRAW_MODE DrawMode = DRAW_MODE.BACKGROUND_COLOR;
+
         public static object TimedStringsLock = new object();
         public static List<long> ChunkLoadTimes = new List<long>();
         public static List<string> Strings = new List<string>();
@@ -20,7 +27,7 @@ namespace procedural_map {
         public static int TotalChunkCount { get { return Map.DebugChunkCount; } }
         public static int OnScreenChunkCount = 0;
         public static int SlowFrames = 0;
-        
+        public static int TotalFrames = 0;        
 
         public static List<TimedString> TimedStrings = new List<TimedString>();
 
@@ -35,10 +42,12 @@ namespace procedural_map {
             Strings.Add("Debug update: " + LastDebugUpdateTime.ToString() + "ms");
             Strings.Add("Full loop: " + LastFullLoopTime.ToString() + "ms");
             Strings.Add("Full loop (max): " + MaxFullLoopTime.ToString() + "ms");
+            Strings.Add("Total frames: " + TotalFrames.ToString());
             Strings.Add("Slow frames: " + SlowFrames.ToString());
             Strings.Add("Camera offset: " + Camera.CoordinatesString());
             Strings.Add("Camera offset (chunk): " + Camera.ChunkPositionString());
             Strings.Add("Camera offset (tile): " + Camera.ChunkTilePositionString());
+            Strings.Add("Draw mode: " + Debug.DrawMode.ToString());
             if(Map.DebugChunkCount > 0) {
                 Strings.Add("Chunk count: " + TotalChunkCount.ToString());
                 Strings.Add("Chunks on screen: " + OnScreenChunkCount.ToString());
@@ -75,16 +84,24 @@ namespace procedural_map {
 
         public static void Update(CanvasAnimatedUpdateEventArgs args) {
             OnScreenChunkCount = 0;
-            for (int i = TimedStrings.Count - 1; i >= 0; i--) {
-                if (TimedStrings[i].Dead) { TimedStrings.RemoveAt(i); }
-                else { TimedStrings[i].Update(args); }
+            lock (Debug.TimedStringsLock) {
+                for (int i = TimedStrings.Count - 1; i >= 0; i--) {
+                    if (TimedStrings[i].Dead) { TimedStrings.RemoveAt(i); }
+                    else { TimedStrings[i].Update(args); }
+                }
             }
         }
 
-        public static void AddTimedString(string str) {
+        public static void AddTimedString(string str, Color color) {
             lock (Debug.TimedStringsLock) {
-                TimedStrings.Add(new TimedString(str));
+                TimedStrings.Add(new TimedString(str, color));
             }
+        }
+
+        public static void Reset() {
+            MaxFullLoopTime = 0;
+            SlowFrames = 0;
+            TotalFrames = 0;
         }
     }
 }

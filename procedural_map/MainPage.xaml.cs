@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
@@ -28,7 +29,7 @@ namespace procedural_map {
             this.InitializeComponent();
 
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.FullScreen;
-            Application.Current.DebugSettings.EnableFrameRateCounter = false;
+            //Application.Current.DebugSettings.EnableFrameRateCounter = false;
 
             Window.Current.CoreWindow.KeyDown += CoreWindow_KeyDown;
             Window.Current.CoreWindow.KeyUp += CoreWindow_KeyUp;
@@ -43,22 +44,24 @@ namespace procedural_map {
                 case Windows.System.VirtualKey.Down:
                     Camera.KeyDown(args.VirtualKey);
                     break;
-                case Windows.System.VirtualKey.A:
-                    Debug.TimedStrings.Add(new TimedString("Test string"));
-                    break;
+                //case Windows.System.VirtualKey.A:
+                //    Debug.TimedStrings.Add(new TimedString("Test string"));
+                //    break;
                 case Windows.System.VirtualKey.R:
-                    Debug.MaxFullLoopTime = 0;
-                    Debug.SlowFrames = 0;
+                    Debug.Reset();
+                    break;
+                case Windows.System.VirtualKey.D:
+                    Debug.DrawMode = (Debug.DrawMode == Debug.DRAW_MODE.BACKGROUND_COLOR) ? Debug.DRAW_MODE.ELEVATION : Debug.DRAW_MODE.BACKGROUND_COLOR;
                     break;
             }
         }
 
         private void canvasMain_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) {
-            if(fullLoopTimer != null) {
+            if (fullLoopTimer != null) {
                 fullLoopTimer.Stop();
                 Debug.LastFullLoopTime = fullLoopTimer.ElapsedMilliseconds;
-                if(Debug.LastFullLoopTime > Debug.MaxFullLoopTime) { Debug.MaxFullLoopTime = Debug.LastFullLoopTime; }
-                if(fullLoopTimer.ElapsedMilliseconds > canvasMain.TargetElapsedTime.TotalMilliseconds) { Debug.SlowFrames++; }
+                if (Debug.LastFullLoopTime > Debug.MaxFullLoopTime) { Debug.MaxFullLoopTime = Debug.LastFullLoopTime; }
+                if (fullLoopTimer.ElapsedMilliseconds > canvasMain.TargetElapsedTime.TotalMilliseconds + 1) { Debug.SlowFrames++; }
             }
 
             fullLoopTimer = Stopwatch.StartNew();
@@ -71,18 +74,21 @@ namespace procedural_map {
             Debug.LastDrawTime = s.ElapsedMilliseconds;
         }
 
-        private void canvasMain_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) {
+        private async void canvasMain_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) {
             Stopwatch s = Stopwatch.StartNew();
-            Map.Update(args);
+            await Map.Update(args);
             s.Stop();
 
             Debug.LastUpdateTime = s.ElapsedMilliseconds;
+            Debug.TotalFrames++;
 
             Stopwatch d = Stopwatch.StartNew();
             Debug.Update(args);
             d.Stop();
 
             Debug.LastDebugUpdateTime = d.ElapsedMilliseconds;
+
+            Camera.Update(args);
         }
 
         private void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {

@@ -21,10 +21,12 @@ namespace procedural_map {
         private TIMED_STRING_STATE _state;
         private byte _opacity;
         private static byte _opacitystep = 15;
+        private Color Color;
 
         public bool Dead { get { return _state == TIMED_STRING_STATE.DEAD; } }
         public string String { get; set; }
-        public TimedString(string str, int milliseconds = 5000) {
+        public TimedString(string str, Color color, int milliseconds = 5000) {
+            Color = color;
             String = str;
             _age = 0;
             _opacity = 0;
@@ -34,7 +36,7 @@ namespace procedural_map {
 
         public void Draw(CanvasAnimatedDrawEventArgs args, Vector2 position) {
             if (Dead) { return; }
-            args.DrawingSession.DrawText(String, position, Color.FromArgb(_opacity, 255, 255, 255));
+            args.DrawingSession.DrawText(String, position, Color.FromArgb(_opacity, Color.R, Color.G, Color.B));
         }
 
         public void Update(CanvasAnimatedUpdateEventArgs args) {

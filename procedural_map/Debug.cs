@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.System.Diagnostics;
 using Windows.UI;
 
 namespace procedural_map {
@@ -27,7 +28,9 @@ namespace procedural_map {
         public static int TotalChunkCount { get { return Map.DebugChunkCount; } }
         public static int OnScreenChunkCount = 0;
         public static int SlowFrames = 0;
-        public static int TotalFrames = 0;        
+        public static int TotalFrames = 0;
+
+        public static string ChunkSizeMB { get; set; }    
 
         public static List<TimedString> TimedStrings = new List<TimedString>();
 
@@ -54,6 +57,10 @@ namespace procedural_map {
                 Strings.Add("Average chunk load time: " + ChunkLoadTimes.Average().ToString("F") + "ms");
                 Strings.Add("Last chunk load time: " + ChunkLoadTimes.Last().ToString() + "ms");
             }
+
+            ProcessMemoryUsageReport report = ProcessDiagnosticInfo.GetForCurrentProcess().MemoryUsage.GetReport();
+            Strings.Add("Working set: " + (report.WorkingSetSizeInBytes / 1000000).ToString() + "MB");
+            Strings.Add(ChunkSizeMB);
 
             int x = 1500;
             int y = 20;

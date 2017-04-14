@@ -92,6 +92,7 @@ namespace procedural_map {
         }
 
         private void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {
+            Statics.Initialize(canvasMain);
             Map.Initialize(sender.Device);
         }
 

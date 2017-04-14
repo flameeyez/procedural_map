@@ -10,5 +10,6 @@ namespace procedural_map {
         public static int Next() { return r.Next(); }
         public static int Next(int maxValue) { return r.Next(maxValue); }
         public static int Next(int minValue, int maxValue) { return r.Next(minValue, maxValue); }
+        public static double NextDouble() { return r.NextDouble(); }
     }
 }

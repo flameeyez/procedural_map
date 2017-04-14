@@ -60,7 +60,7 @@ namespace procedural_map {
 
             ProcessMemoryUsageReport report = ProcessDiagnosticInfo.GetForCurrentProcess().MemoryUsage.GetReport();
             Strings.Add("Working set: " + (report.WorkingSetSizeInBytes / 1000000).ToString() + "MB");
-            Strings.Add(ChunkSizeMB);
+            if (ChunkSizeMB != null) { Strings.Add(ChunkSizeMB); }
 
             int x = 1500;
             int y = 20;

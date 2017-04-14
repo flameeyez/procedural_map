@@ -11,7 +11,7 @@ namespace procedural_map {
 
         public Tile(int chunkCoordinateX, int chunkCoordinateY, int tileCoordinateX, int tileCoordinateY) {
             // TODO: replace with procedural elevation (global seed, noise)
-            Elevation = 1;
+            Elevation = 0;
         }
 
         public bool IsTraversable() { return Elevation > 0 && Elevation <= MAX_TRAVERSABLE_ELEVATION; }

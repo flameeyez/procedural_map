@@ -33,10 +33,8 @@ namespace procedural_map {
                         if(ChunkCache.TryGetValue(new Point(x, y), out c)) {
                             c.Draw(args);
                         }
-                        //ChunkCache[new Point(x, y)].Draw(args);
                     }
                 }
-                // foreach (Chunk chunk in Chunks) { chunk.Draw(args); }
             }
         }
 
@@ -66,7 +64,6 @@ namespace procedural_map {
             }
 
             Debug.AddTimedString("Creating initial chunks...", Colors.White);
-            // load {-initialChunks, -initialChunks} through {initialChunks, initialChunks}
             for(int i = -_cachedChunkLoadRadius; i <= _cachedChunkLoadRadius; i++) {
                 for(int j = -_cachedChunkLoadRadius; j <= _cachedChunkLoadRadius; j++) {
                     if(i == 0 && j == 0) { continue; }
@@ -82,9 +79,7 @@ namespace procedural_map {
             Point point = new Point(x, y);
 
             if(!ChunkCache.TryGetValue(point, out c)) {
-                // if (!bSuppressOutput) { Debug.AddTimedString("Caching chunk: {" + x.ToString() + ", " + y.ToString() + "}"); }
                 c = Chunk.Create(_device, x, y);
-
                 Chunk temp;
                 lock(Chunk.CacheLock) {
                     if(!ChunkCache.TryGetValue(point, out temp)) {
@@ -99,7 +94,7 @@ namespace procedural_map {
             }
         }
 
-        public static async Task Cache() {
+        public static void Cache() {
             if(bPauseCaching) { return; }
 
             int nChunksAdded = 0;
@@ -107,12 +102,12 @@ namespace procedural_map {
 
             Debug.AddTimedString("Updating cache...", Colors.Yellow);
             Point p = new Point(Camera.ChunkPositionX, Camera.ChunkPositionY);
-            if(await Task.Run(() => CacheChunk(p.X, p.Y))) { nChunksAdded++; }
+            if(CacheChunk(p.X, p.Y)) { nChunksAdded++; }
 
             for(int i = -_cachedChunkLoadRadius; i <= _cachedChunkLoadRadius; i++) {
                 for(int j = -_cachedChunkLoadRadius; j <= _cachedChunkLoadRadius; j++) {
                     if(i == 0 && j == 0) { continue; }
-                    if(await Task.Run(() => CacheChunk(p.X + i, p.Y + j, bSuppressOutput: true))) { nChunksAdded++; }
+                    if(CacheChunk(p.X + i, p.Y + j, bSuppressOutput: true)) { nChunksAdded++; }
                 }
             }
 
@@ -141,40 +136,5 @@ namespace procedural_map {
             Debug.AddTimedString("Cache cleanup took " + s.ElapsedMilliseconds.ToString() + "ms", Colors.White);
             Debug.AddTimedString("Chunks removed: " + nChunksRemoved.ToString(), Colors.Red);
         }
-
-        public async static void CacheUp(int x, int y) {
-            for(int i = -_cachedChunkLoadRadius; i <= _cachedChunkLoadRadius; i++) {
-                await Task.Run(() => CacheChunk(x + i, y - _cachedChunkLoadRadius));
-            }
-        }
-
-        public async static void CacheDown(int x, int y) {
-            for(int i = -_cachedChunkLoadRadius; i <= _cachedChunkLoadRadius; i++) {
-                await Task.Run(() => CacheChunk(x + i, y + _cachedChunkLoadRadius));
-            }
-        }
-
-        public async static void CacheLeft(int x, int y) {
-            for(int i = -_cachedChunkLoadRadius; i <= _cachedChunkLoadRadius; i++) {
-                await Task.Run(() => CacheChunk(x - _cachedChunkLoadRadius, y + i));
-            }
-        }
-
-        public async static void CacheRight(int x, int y) {
-            for(int i = -_cachedChunkLoadRadius; i <= _cachedChunkLoadRadius; i++) {
-                await Task.Run(() => CacheChunk(x + _cachedChunkLoadRadius, y + i));
-            }
-        }
     }
 }
-
-// old cache cleanup
-//for(int i = Chunks.Count - 1; i >= 0; i--) {
-//    if((Math.Abs(Camera.ChunkPositionX - Chunks[i].ChunkCoordinateX) >= _cachedChunkUnloadThreshold)
-//    || (Math.Abs(Camera.ChunkPositionY - Chunks[i].ChunkCoordinateY) >= _cachedChunkUnloadThreshold)) {
-//        //Debug.AddTimedString("Removing chunk: {" + Chunks[i].ChunkCoordinateX.ToString() + ", " + Chunks[i].ChunkCoordinateY.ToString() + "}");
-//        nChunksRemoved++;
-//        ChunkCacheMap.Remove(new Point(Chunks[i].ChunkCoordinateX, Chunks[i].ChunkCoordinateY));
-//        Chunks.RemoveAt(i);
-//    }
-//}

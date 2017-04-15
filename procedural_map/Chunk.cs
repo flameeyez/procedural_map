@@ -49,14 +49,14 @@ namespace procedural_map {
         public void Draw(CanvasAnimatedDrawEventArgs args) {
             if (IsOnScreen()) {
                 Debug.OnScreenChunkCount++;
-                switch (Debug.DrawMode) {
-                    case Debug.DRAW_MODE.BACKGROUND_COLOR:
-                        args.DrawingSession.DrawImage(RenderTargetBackgroundColor, new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
-                        break;
-                    case Debug.DRAW_MODE.ELEVATION:
-                        args.DrawingSession.DrawImage(RenderTargetElevation, new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
-                        break;
-                }
+                //switch (Debug.DrawMode) {
+                //    case Debug.DRAW_MODE.BACKGROUND_COLOR:
+                //        args.DrawingSession.DrawImage(RenderTargetBackgroundColor, new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
+                //        break;
+                //    case Debug.DRAW_MODE.ELEVATION:
+                args.DrawingSession.DrawImage(RenderTargetElevation, new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
+                //        break;
+                //}
             }
         }
 
@@ -71,7 +71,13 @@ namespace procedural_map {
                 }
             }
 
+            Stopwatch sHeightMap = Stopwatch.StartNew();
             chunk.GenerateHeightMap();
+            sHeightMap.Stop();
+
+            lock (Debug.DebugCollectionsLock) {
+                Debug.HeightMapTimes.Add(sHeightMap.ElapsedMilliseconds);
+            }
 
             // draw chunk to render target
             Color _debugBackgroundColor = Statics.RandomColor();
@@ -82,23 +88,26 @@ namespace procedural_map {
                     for (int x = 0; x < ChunkSideLength; x++) {
                         for (int y = 0; y < ChunkSideLength; y++) {
                             // background color
-                            dsBackgroundColor.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), _debugBackgroundColor);
-                            dsBackgroundColor.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
+                            //dsBackgroundColor.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), _debugBackgroundColor);
+                            //dsBackgroundColor.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
 
                             // elevation
                             dsElevation.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Chunk.ElevationColor(chunk.Tiles[x, y].Elevation));
-                            dsElevation.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
+                            //dsElevation.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
                         }
                     }
                 }
             }
 
             s.Stop();
-            Debug.ChunkLoadTimes.Add(s.ElapsedMilliseconds);
+            lock (Debug.DebugCollectionsLock) { Debug.ChunkLoadTimes.Add(s.ElapsedMilliseconds); }
             return chunk;
         }
 
         public static Color ElevationColor(int elevation) {
+            int e = elevation + 50;
+            if (e > 255) { e = 255; }
+            return Color.FromArgb(255, 0, (byte)e, 0);
             //if (elevation == 0) { return Colors.Blue; }
             //else if (elevation < 2) { return Colors.Yellow; }
             //else if (elevation < 4) { return Colors.LightGreen; }
@@ -168,7 +177,17 @@ namespace procedural_map {
         public void GenerateHeightMap() {
             for (int x = 0; x < ChunkSideLength; x++) {
                 for (int y = 0; y < ChunkSideLength; y++) {
-                    Tiles[x, y].Elevation = 5 + (int)(SimplexNoise.Noise2D((x + Coordinates.X * ChunkSideLength) / 10.0, (y + Coordinates.Y * ChunkSideLength) / 10.0) * 10);
+                    double xin = (x + Coordinates.X * ChunkSideLength) * 0.05;
+                    double yin = (y + Coordinates.Y * ChunkSideLength) * 0.05;
+                    //double d = SimplexNoise.Sum2D(xin, yin, octaves: 1, persistence: 0.5, frequency: 1);
+                    double d = SimplexNoise.Noise2D(xin, yin);
+                    d *= 100;
+                    d += 100;
+                    int n = (int)d;
+                    Tiles[x, y].Elevation = n; // 0-200
+                    if (Debug.HeightmapValues.Count < 1000) {
+                        Debug.HeightmapValues.Add(new Tuple<double, double, int>(x, y, n));
+                    }
                 }
             }
         }

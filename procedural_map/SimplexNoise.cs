@@ -57,6 +57,24 @@ namespace procedural_map {
         private static double F2 = 0.5 * (Math.Sqrt(3.0) - 1.0);
         private static double G2 = (3.0 - Math.Sqrt(3.0)) / 6.0;
 
+        public static double Sum2D(double xin, double yin, int octaves, double persistence, double frequency) {//, double low, double high) {
+            double maxAmplitude = 0;
+            double amplitude = 1;
+            double value = 0;
+
+            for (int i = 0; i < octaves; i++) {
+                value += Noise2D(xin * frequency, yin * frequency) * amplitude;
+                maxAmplitude += amplitude;
+                amplitude *= persistence;
+                frequency *= 2;
+            }
+
+            value /= maxAmplitude;
+            // value = value * (high - low) / 2 + (high + low) / 2;
+
+            return value;
+        }
+
         // 2D simplex noise
         public static double Noise2D(double xin, double yin) {
             double n0, n1, n2; // Noise contributions from the three corners

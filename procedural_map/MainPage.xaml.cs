@@ -67,11 +67,23 @@ namespace procedural_map {
             fullLoopTimer = Stopwatch.StartNew();
 
             Stopwatch s = Stopwatch.StartNew();
+            Stopwatch sMap = Stopwatch.StartNew();
             Map.Draw(args);
+            sMap.Stop();
+
+            Stopwatch sDebug = Stopwatch.StartNew();
             Debug.Draw(args);
+            sDebug.Stop();
+
+            Stopwatch sMouse = Stopwatch.StartNew();
+            Mouse.Draw(args);
+            sMouse.Stop();
             s.Stop();
 
             Debug.LastDrawTime = s.ElapsedMilliseconds;
+            Debug.LastDrawMouseTime = sMouse.ElapsedMilliseconds;
+            Debug.LastDrawDebugTime = sDebug.ElapsedMilliseconds;
+            Debug.LastDrawMapTime = sMap.ElapsedMilliseconds;
         }
 
         private async void canvasMain_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) {
@@ -91,7 +103,8 @@ namespace procedural_map {
             Camera.Update(args);
         }
 
-        private void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {
+        private async void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {
+            Debug.Initialize();
             Statics.Initialize(canvasMain);
             Map.Initialize(sender.Device);
         }

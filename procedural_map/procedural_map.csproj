@@ -95,31 +95,31 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Camera.cs" />
-    <Compile Include="Chunk.cs" />
-    <Compile Include="Debug.cs" />
-    <Compile Include="Entity.cs" />
-    <Compile Include="Event.cs" />
-    <Compile Include="Layer.cs" />
+    <Compile Include="static\Camera.cs" />
+    <Compile Include="map\Chunk.cs" />
+    <Compile Include="debug\Debug.cs" />
+    <Compile Include="misc\Entity.cs" />
+    <Compile Include="misc\Event.cs" />
+    <Compile Include="misc\Layer.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Map.cs" />
-    <Compile Include="Mouse.cs" />
+    <Compile Include="map\Map.cs" />
+    <Compile Include="static\Mouse.cs" />
     <Compile Include="pathfinding\BinaryHeap.cs" />
     <Compile Include="pathfinding\HeapNode.cs" />
     <Compile Include="pathfinding\Path.cs" />
     <Compile Include="pathfinding\PathNode.cs" />
     <Compile Include="pathfinding\PathNodeCollection.cs" />
-    <Compile Include="SimplexNoise.cs" />
-    <Compile Include="Player.cs" />
-    <Compile Include="Point.cs" />
+    <Compile Include="static\SimplexNoise.cs" />
+    <Compile Include="misc\Player.cs" />
+    <Compile Include="map\Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Random.cs" />
-    <Compile Include="Statics.cs" />
-    <Compile Include="Tile.cs" />
-    <Compile Include="TimedString.cs" />
-    <Compile Include="Vector2RowColumn.cs" />
+    <Compile Include="static\Random.cs" />
+    <Compile Include="static\Statics.cs" />
+    <Compile Include="map\Tile.cs" />
+    <Compile Include="debug\TimedString.cs" />
+    <Compile Include="misc\Vector2RowColumn.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

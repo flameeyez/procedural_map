@@ -13,7 +13,7 @@ namespace procedural_map {
         private static CanvasDevice _device;
         private static int _cachedChunkLoadRadius = 10;//3;
         private static int _cachedChunkUnloadThreshold = 20;//5;
-        public static int TILE_RESOLUTION = 8;//32;
+        public static int TILE_RESOLUTION = 4;//32;
 
         private static Dictionary<Point, Chunk> ChunkCache = new Dictionary<Point, Chunk>();
         public static int DebugChunkCount { get { return ChunkCache.Count; } }

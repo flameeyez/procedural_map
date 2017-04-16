@@ -1,3 +1,13 @@
-noise refinement
 layers for terrain features?
 first animated sprite + pathfinding
+
+noise:
+0.01 = slow rise, slow fall
+use 0.01 during a mountain pass; capture values over threshold
+use 0.01 with a different offset for water? do we want similarly sized mountains and water?
+0.05 = fast rise, fast fall
+use 0.05 to add vegetation?
+
+caching:
+caching to the right should cache the sum of chunks on screen plus the threshold, as the anchor point is the top-left corner of the screen
+this leads to holes when scrolling to the right; scrolling to the left is far less affected

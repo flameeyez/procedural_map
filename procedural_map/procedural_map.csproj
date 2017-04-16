@@ -95,7 +95,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="static\Camera.cs" />
+    <Compile Include="map\Camera.cs" />
     <Compile Include="map\Chunk.cs" />
     <Compile Include="debug\Debug.cs" />
     <Compile Include="misc\Entity.cs" />
@@ -105,18 +105,18 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="map\Map.cs" />
-    <Compile Include="static\Mouse.cs" />
+    <Compile Include="utility\Mouse.cs" />
     <Compile Include="pathfinding\BinaryHeap.cs" />
     <Compile Include="pathfinding\HeapNode.cs" />
     <Compile Include="pathfinding\Path.cs" />
     <Compile Include="pathfinding\PathNode.cs" />
     <Compile Include="pathfinding\PathNodeCollection.cs" />
-    <Compile Include="static\SimplexNoise.cs" />
+    <Compile Include="noise\SimplexNoise.cs" />
     <Compile Include="misc\Player.cs" />
     <Compile Include="map\Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="static\Random.cs" />
-    <Compile Include="static\Statics.cs" />
+    <Compile Include="utility\Random.cs" />
+    <Compile Include="utility\Statics.cs" />
     <Compile Include="map\Tile.cs" />
     <Compile Include="debug\TimedString.cs" />
     <Compile Include="misc\Vector2RowColumn.cs" />

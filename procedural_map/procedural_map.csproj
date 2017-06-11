@@ -105,6 +105,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="map\Map.cs" />
+    <Compile Include="PointInt.cs" />
     <Compile Include="utility\Mouse.cs" />
     <Compile Include="pathfinding\BinaryHeap.cs" />
     <Compile Include="pathfinding\HeapNode.cs" />
@@ -113,7 +114,6 @@
     <Compile Include="pathfinding\PathNodeCollection.cs" />
     <Compile Include="noise\SimplexNoise.cs" />
     <Compile Include="misc\Player.cs" />
-    <Compile Include="map\Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="utility\Random.cs" />
     <Compile Include="utility\Statics.cs" />

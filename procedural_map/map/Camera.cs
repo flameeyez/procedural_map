@@ -8,10 +8,20 @@ using Windows.UI;
 
 namespace procedural_map {
     static class Camera {
-        public static double PositionX { get; set; }
-        public static double PositionY { get; set; }
-        public static int AbsoluteTilePositionX { get { return (int)(Math.Floor(PositionX / Map.TILE_RESOLUTION)); } }
-        public static int AbsoluteTilePositionY { get { return (int)(Math.Floor(PositionY / Map.TILE_RESOLUTION)); } }
+        public static int PositionX { get; set; }
+        public static int PositionY { get; set; }
+        public static int AbsoluteTilePositionX {
+            get {
+                int nReturn = PositionX / Map.TILE_RESOLUTION;
+                return PositionX < 0 ? nReturn - 1 : nReturn;
+            }
+        }
+        public static int AbsoluteTilePositionY {
+            get {
+                int nReturn = PositionY / Map.TILE_RESOLUTION;
+                return PositionY < 0 ? nReturn - 1 : nReturn;
+            }
+        }
         public static int ChunkTilePositionX { get; set; }
         public static int ChunkTilePositionY { get; set; }
         private static int _lastChunkPositionX;

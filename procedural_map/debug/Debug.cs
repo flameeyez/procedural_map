@@ -19,6 +19,9 @@ namespace procedural_map {
 
         public static object DebugCollectionsLock = new object();
 
+        public static double MaxDeltaX { get; set; }
+        public static double MaxDeltaY { get; set; }
+
         public static List<long> ChunkLoadTimes = new List<long>();
         public static List<long> HeightMapTimes = new List<long>();
         public static List<string> Strings = new List<string>();
@@ -43,6 +46,8 @@ namespace procedural_map {
         public static void Draw(CanvasAnimatedDrawEventArgs args) {
             Strings.Clear();
             try { Strings.Add("Elevation: " + Mouse.ElevationString); } catch (Exception e) { }
+            Strings.Add("Max delta X: " + MaxDeltaX.ToString("F"));
+            Strings.Add("Max delta Y: " + MaxDeltaY.ToString("F"));
             Strings.Add("Mouse: " + Mouse.CoordinatesString);
             Strings.Add("Mouse (chunk): " + Mouse.ChunkString);
             Strings.Add("Mouse (tile): " + Mouse.TileString);

@@ -24,12 +24,12 @@ namespace procedural_map {
         public CanvasRenderTarget RenderTargetBackgroundColor { get; set; }
         public CanvasRenderTarget RenderTargetElevation { get; set; }
 
-        public Point Coordinates { get; set; }
-        public double PixelCoordinateX { get { return Coordinates.X * ChunkSideInPixels; } }
-        public double PixelCoordinateY { get { return Coordinates.Y * ChunkSideInPixels; } }
+        public PointInt Coordinates { get; set; }
+        public int PixelCoordinateX { get { return Coordinates.X * ChunkSideInPixels; } }
+        public int PixelCoordinateY { get { return Coordinates.Y * ChunkSideInPixels; } }
 
-        public double ScreenPositionX { get { return PixelCoordinateX - Camera.PositionX; } }
-        public double ScreenPositionY { get { return PixelCoordinateY - Camera.PositionY; } }
+        public int ScreenPositionX { get { return PixelCoordinateX - Camera.PositionX; } }
+        public int ScreenPositionY { get { return PixelCoordinateY - Camera.PositionY; } }
 
         public Tile[,] Tiles;
         public bool IsOnScreen() {
@@ -43,7 +43,7 @@ namespace procedural_map {
         }
 
         public Chunk(CanvasDevice device, int chunkCoordinateX, int chunkCoordinateY) {
-            Coordinates = new Point(chunkCoordinateX, chunkCoordinateY);
+            Coordinates = new PointInt(chunkCoordinateX, chunkCoordinateY);
         }
 
         public void Draw(CanvasAnimatedDrawEventArgs args) {
@@ -89,11 +89,11 @@ namespace procedural_map {
                         for (int y = 0; y < ChunkSideLength; y++) {
                             // background color
                             dsBackgroundColor.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), _debugBackgroundColor);
-                            dsBackgroundColor.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
+                            //dsBackgroundColor.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
 
                             // elevation
                             dsElevation.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Chunk.ElevationColor(chunk.Tiles[x, y].Elevation));
-                            dsElevation.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
+                            //dsElevation.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
                         }
                     }
                 }

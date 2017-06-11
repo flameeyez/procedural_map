@@ -114,8 +114,11 @@ namespace procedural_map {
             Mouse.X = p.Position.X;
             Mouse.Y = p.Position.Y;
             if (Mouse.LeftButtonDown) {
-                Camera.PositionX -= Mouse.DeltaX;
-                Camera.PositionY -= Mouse.DeltaY;
+                Camera.PositionX -= (int)Mouse.DeltaX;
+                Camera.PositionY -= (int)Mouse.DeltaY;
+
+                if (Mouse.DeltaX > Debug.MaxDeltaX) { Debug.MaxDeltaX = Mouse.DeltaX; }
+                if (Mouse.DeltaY > Debug.MaxDeltaY) { Debug.MaxDeltaY = Mouse.DeltaY; }
             }
         }
 

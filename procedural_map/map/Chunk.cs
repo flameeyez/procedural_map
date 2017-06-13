@@ -22,7 +22,7 @@ namespace procedural_map {
         public static int MaxChunksVisibleY { get { return _maxChunksVisibleY; } }
 
         public CanvasRenderTarget RenderTargetBackgroundColor { get; set; }
-        public CanvasRenderTarget RenderTargetElevation { get; set; }
+        public CanvasRenderTarget RenderTargetElevationMountains { get; set; }
 
         public PointInt Coordinates { get; set; }
         public int PixelCoordinateX { get { return Coordinates.X * ChunkSideInPixels; } }
@@ -42,8 +42,8 @@ namespace procedural_map {
             _maxChunksVisibleY = (int)Math.Ceiling(Statics.ClientHeight / ChunkSideInPixels) + 1;
         }
 
-        public Chunk(CanvasDevice device, int chunkCoordinateX, int chunkCoordinateY) {
-            Coordinates = new PointInt(chunkCoordinateX, chunkCoordinateY);
+        public Chunk(CanvasDevice device, PointInt coordinates) {
+            Coordinates = coordinates;
         }
 
         public void Draw(CanvasAnimatedDrawEventArgs args) {
@@ -51,27 +51,30 @@ namespace procedural_map {
                 Debug.OnScreenChunkCount++;
                 switch (Debug.DrawMode) {
                     case Debug.DRAW_MODE.BACKGROUND_COLOR:
-                        args.DrawingSession.DrawImage(RenderTargetBackgroundColor, new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
+                        args.DrawingSession.DrawImage(RenderTargetBackgroundColor,
+                            new Rect(ScreenPositionX, ScreenPositionY,
+                                RenderTargetBackgroundColor.Bounds.Width * Map.TILE_RESOLUTION,
+                                RenderTargetBackgroundColor.Bounds.Height * Map.TILE_RESOLUTION));
                         break;
                     case Debug.DRAW_MODE.ELEVATION:
-                        args.DrawingSession.DrawImage(RenderTargetElevation,
-                            new Rect(ScreenPositionX, ScreenPositionY, 
-                                RenderTargetElevation.Bounds.Width * Map.TILE_RESOLUTION / Statics.OverworldTileResolution, 
-                                RenderTargetElevation.Bounds.Height * Map.TILE_RESOLUTION / Statics.OverworldTileResolution));
-                            //new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
+                        args.DrawingSession.DrawImage(RenderTargetElevationMountains,
+                            new Rect(ScreenPositionX, ScreenPositionY,
+                                RenderTargetElevationMountains.Bounds.Width * Map.TILE_RESOLUTION / Statics.OverworldTileResolution,
+                                RenderTargetElevationMountains.Bounds.Height * Map.TILE_RESOLUTION / Statics.OverworldTileResolution));
+                        //new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
                         break;
                 }
             }
         }
 
-        public static Chunk Create(CanvasDevice device, int chunkCoordinateX, int chunkCoordinateY) {
+        public static Chunk Create(CanvasDevice device, PointInt coordinates) {
             Stopwatch s = Stopwatch.StartNew();
-            Chunk chunk = new Chunk(device, chunkCoordinateX, chunkCoordinateY);
+            Chunk chunk = new Chunk(device, coordinates);
             chunk.Tiles = new Tile[ChunkSideLength, ChunkSideLength];
 
             for (int tileX = 0; tileX < ChunkSideLength; tileX++) {
                 for (int tileY = 0; tileY < ChunkSideLength; tileY++) {
-                    chunk.Tiles[tileX, tileY] = new Tile(chunkCoordinateX, chunkCoordinateY, tileX, tileY);
+                    chunk.Tiles[tileX, tileY] = new Tile();// chunkCoordinateX, chunkCoordinateY, tileX, tileY);
                 }
             }
 
@@ -85,60 +88,63 @@ namespace procedural_map {
 
             // draw chunk to render target
             Color _debugBackgroundColor = Statics.RandomColor();
-            chunk.RenderTargetBackgroundColor = new CanvasRenderTarget(device, ChunkSideInPixels, ChunkSideInPixels, 96);
-            chunk.RenderTargetElevation = new CanvasRenderTarget(device, ChunkSideLength * Statics.OverworldTileResolution, ChunkSideLength * Statics.OverworldTileResolution, 96);
+            chunk.RenderTargetBackgroundColor = new CanvasRenderTarget(device, ChunkSideLength, ChunkSideLength, 96);
+            chunk.RenderTargetElevationMountains = new CanvasRenderTarget(device, ChunkSideLength * Statics.OverworldTileResolution, ChunkSideLength * Statics.OverworldTileResolution, 96);
+            //chunk.RenderTargetElevation = new CanvasRenderTarget(device, ChunkSideLength * Statics.OverworldTileResolution, ChunkSideLength * Statics.OverworldTileResolution, 96);
             using (CanvasDrawingSession dsBackgroundColor = chunk.RenderTargetBackgroundColor.CreateDrawingSession()) {
-                using (CanvasDrawingSession dsElevation = chunk.RenderTargetElevation.CreateDrawingSession()) {
+                using (CanvasDrawingSession dsElevation = chunk.RenderTargetElevationMountains.CreateDrawingSession()) {
                     for (int x = 0; x < ChunkSideLength; x++) {
                         for (int y = 0; y < ChunkSideLength; y++) {
                             // background color
-                            dsBackgroundColor.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), _debugBackgroundColor);
+                            dsBackgroundColor.FillRectangle(new Rect(x, y, 1, 1), _debugBackgroundColor);
                             //dsBackgroundColor.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
 
                             // elevation
-                            if (chunk.Tiles[x, y].Elevation < 70) {
-                                dsElevation.DrawImage(Statics.BitmapOverworld,
-                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
-                                    new Rect(Statics.OverworldTileWater.X, Statics.OverworldTileWater.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
-                            }
-                            else if(chunk.Tiles[x,y].Elevation < 80) {
-                                dsElevation.DrawImage(Statics.BitmapOverworld,
-                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
-                                    new Rect(Statics.OverworldTileDesert.X, Statics.OverworldTileDesert.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
-                            }
-                            else if (chunk.Tiles[x, y].Elevation < 100) {
-                                dsElevation.DrawImage(Statics.BitmapOverworld,
-                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
-                                    new Rect(Statics.OverworldTileGrassLight.X, Statics.OverworldTileGrassLight.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
-                            }
-                            else if (chunk.Tiles[x, y].Elevation < 130) {
-                                dsElevation.DrawImage(Statics.BitmapOverworld,
-                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
-                                    new Rect(Statics.OverworldTileGrass.X, Statics.OverworldTileGrass.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
-                            }
-                            else if (chunk.Tiles[x, y].Elevation < 150) {
-                                dsElevation.DrawImage(Statics.BitmapOverworld,
-                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
-                                    new Rect(Statics.OverworldTileForest.X, Statics.OverworldTileForest.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
-                            }
-                            else {
-                                dsElevation.DrawImage(Statics.BitmapOverworld,
-                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
-                                    new Rect(Statics.OverworldTileMountain.X, Statics.OverworldTileMountain.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
-                            }
+                            switch (chunk.Tiles[x, y].TileType) {
+                                case Tile.TILE_TYPE.GRASS:
+                                    dsElevation.DrawImage(Statics.BitmapOverworld,
+                                        new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                        new Rect(Statics.OverworldTileGrass.X, Statics.OverworldTileGrass.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
 
-                            // args.DrawingSession.DrawImage(Statics.BitmapOverworld, new Rect(x, y, resolution, resolution), new Rect(Statics.OverworldTileForest.X, Statics.OverworldTileForest.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
-                            //public static CanvasBitmap BitmapOverworld { get; set; }
-                            //public static PointInt OverworldTileMountain = new PointInt(0, 0);
-                            //public static PointInt OverworldTileGrass = new PointInt(32, 0);
-                            //public static PointInt OverworldTileForest = new PointInt(64, 0);
-                            //public static PointInt OverworldTileDesert = new PointInt(96, 0);
-                            //public static PointInt OverworldTileWater = new PointInt(128, 0);
-                            //public static PointInt OverworldTileGrassLight = new PointInt(160, 0);
-                            //public static int OverworldTileResolution = 32;
+                                    // dsElevation.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), Colors.Green);
+                                    break;
+                                case Tile.TILE_TYPE.MOUNTAINS:
+                                    dsElevation.DrawImage(Statics.BitmapOverworld,
+                                        new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                        new Rect(Statics.OverworldTileMountain.X, Statics.OverworldTileMountain.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
 
+                                    // dsElevation.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), Colors.Brown);
+                                    break;
+                                case Tile.TILE_TYPE.WATER:
+                                    dsElevation.DrawImage(Statics.BitmapOverworld,
+                                        new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                        new Rect(Statics.OverworldTileWater.X, Statics.OverworldTileWater.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
 
-                            //dsElevation.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Chunk.ElevationColor(chunk.Tiles[x, y].Elevation));
+                                    // dsElevation.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), Colors.Blue);
+                                    break;
+                                case Tile.TILE_TYPE.FOREST:
+                                    dsElevation.DrawImage(Statics.BitmapOverworld,
+                                        new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                        new Rect(Statics.OverworldTileForest.X, Statics.OverworldTileForest.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+
+                                    // dsElevation.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), Colors.DarkGreen);
+                                    break;
+                                case Tile.TILE_TYPE.DESERT:
+                                    dsElevation.DrawImage(Statics.BitmapOverworld,
+                                        new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                        new Rect(Statics.OverworldTileDesert.X, Statics.OverworldTileDesert.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+
+                                    // dsElevation.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), Colors.DarkGreen);
+                                    break;
+                                case Tile.TILE_TYPE.GRASS_LIGHT:
+                                    dsElevation.DrawImage(Statics.BitmapOverworld,
+                                        new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                        new Rect(Statics.OverworldTileGrassLight.X, Statics.OverworldTileGrassLight.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+
+                                    // dsElevation.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), Colors.DarkGreen);
+                                    break;
+                            }
+                            //dsElevation.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), Chunk.ElevationColor(chunk.Tiles[x, y].Elevation));
                             //dsElevation.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
                         }
                     }
@@ -150,45 +156,117 @@ namespace procedural_map {
             return chunk;
         }
 
-        public static Color ElevationColor(int elevation) {
-            int e = elevation + 50;
-            if (e > 255) { e = 255; }
-            return Color.FromArgb(255, 0, (byte)e, 0);
-
-            // TODO: replace green gradient with actual height interpretation; possible replace this mechanism completely
-            //if (elevation < 1) { return Colors.Blue; }
-            //else if (elevation < 2) { return Colors.Gold; }
-            //else if (elevation < 10) { return Colors.Green; }
-            //else if (elevation < 15) { return Colors.DarkGreen; }
-            //else if (elevation < 27) { return Colors.Green; }
-            //else if (elevation < 30) { return Colors.Brown; }
-            //else { return Colors.White; }
-        }
-
         public void GenerateHeightMap() {
             for (int x = 0; x < ChunkSideLength; x++) {
                 for (int y = 0; y < ChunkSideLength; y++) {
                     double scale = 0.02;
 
+                    double offsetMountains = 12345678;
+                    double offsetWater = 82738492;
+                    double offsetForest = 23498758;
+                    double offsetDesert = 73829178;
+                    double offsetGrassLight = 38291731;
+
                     // octave use
-                    double xin = (x + Coordinates.X * ChunkSideLength);
-                    double yin = (y + Coordinates.Y * ChunkSideLength);
-                    double d = SimplexNoise.Sum2D(xin, yin, octaves: 16, persistence: 0.5, frequency: scale);
+                    double xinBase = (x + Coordinates.X * ChunkSideLength);
+                    double yinBase = (y + Coordinates.Y * ChunkSideLength);
+
+                    // mountain layer
+                    double dMountains = SimplexNoise.Sum2D(xinBase + offsetMountains, yinBase + offsetMountains, octaves: 16, persistence: 0.5, frequency: scale);
+                    dMountains *= 100;
+                    dMountains += 100;
+
+                    // if mountain exceeds threshold value, use it and continue
+                    if (dMountains > 130) {
+                        Tiles[x, y].TileType = Tile.TILE_TYPE.MOUNTAINS;
+                        continue;
+                    }
+
+                    // water layer
+                    double dWater = SimplexNoise.Sum2D(xinBase + offsetWater, yinBase + offsetWater, octaves: 16, persistence: 0.5, frequency: scale);
+                    dWater *= 100;
+                    dWater += 100;
+
+                    if (dWater > 130) {
+                        Tiles[x, y].TileType = Tile.TILE_TYPE.WATER;
+                        continue;
+                    }
+
+                    // forest layer
+                    double dForest = SimplexNoise.Sum2D(xinBase + offsetForest, yinBase + offsetForest, octaves: 16, persistence: 0.5, frequency: scale);
+                    dForest *= 100;
+                    dForest += 100;
+
+                    if (dForest > 130) {
+                        Tiles[x, y].TileType = Tile.TILE_TYPE.FOREST;
+                        continue;
+                    }
+
+                    // desert layer
+                    double dDesert = SimplexNoise.Sum2D(xinBase + offsetDesert, yinBase + offsetDesert, octaves: 16, persistence: 0.5, frequency: scale);
+                    dDesert *= 100;
+                    dDesert += 100;
+
+                    if (dDesert > 130) {
+                        Tiles[x, y].TileType = Tile.TILE_TYPE.DESERT;
+                        continue;
+                    }
+
+                    // light grass layer
+                    double dGrassLight = SimplexNoise.Sum2D(xinBase + offsetGrassLight, yinBase + offsetGrassLight, octaves: 16, persistence: 0.5, frequency: scale);
+                    dGrassLight *= 100;
+                    dGrassLight += 100;
+
+                    if (dGrassLight > 130) {
+                        Tiles[x, y].TileType = Tile.TILE_TYPE.GRASS_LIGHT;
+                        continue;
+                    }
+
+                    // default to grass
+                    Tiles[x, y].TileType = Tile.TILE_TYPE.GRASS;
 
                     // no octave use
                     //double xin = (x + Coordinates.X * ChunkSideLength) * scale;
                     //double yin = (y + Coordinates.Y * ChunkSideLength) * scale;
                     //double d = SimplexNoise.Noise2D(xin, yin);
 
-                    d *= 100;
-                    d += 100;
-                    int n = (int)d;
-                    Tiles[x, y].Elevation = n; // 0-200
-                    if (Debug.HeightmapValues.Count < 1000) {
-                        Debug.HeightmapValues.Add(new Tuple<double, double, int>(x, y, n));
-                    }
+                    //Tiles[x, y].Elevation = n; // 0-200
+                    //if (Debug.HeightmapValues.Count < 1000) {
+                    //    Debug.HeightmapValues.Add(new Tuple<double, double, int>(x, y, n));
+                    //}
                 }
             }
         }
     }
 }
+
+//if (chunk.Tiles[x, y].Elevation<Statics.ElevationThresholdWater) {
+//    dsElevation.DrawImage(Statics.BitmapOverworld,
+//        new Rect(x* Statics.OverworldTileResolution, y* Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+//        new Rect(Statics.OverworldTileWater.X, Statics.OverworldTileWater.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+//}
+//else if(chunk.Tiles[x, y].Elevation<Statics.ElevationThresholdDesert) {
+//    dsElevation.DrawImage(Statics.BitmapOverworld,
+//        new Rect(x* Statics.OverworldTileResolution, y* Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+//        new Rect(Statics.OverworldTileDesert.X, Statics.OverworldTileDesert.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+//}
+//else if (chunk.Tiles[x, y].Elevation<Statics.ElevationThresholdGrassLight) {
+//    dsElevation.DrawImage(Statics.BitmapOverworld,
+//        new Rect(x* Statics.OverworldTileResolution, y* Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+//        new Rect(Statics.OverworldTileGrassLight.X, Statics.OverworldTileGrassLight.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+//}
+//else if (chunk.Tiles[x, y].Elevation<Statics.ElevationThresholdGrass) {
+//    dsElevation.DrawImage(Statics.BitmapOverworld,
+//        new Rect(x* Statics.OverworldTileResolution, y* Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+//        new Rect(Statics.OverworldTileGrass.X, Statics.OverworldTileGrass.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+//}
+//else if (chunk.Tiles[x, y].Elevation<Statics.ElevationThresholdForest) {
+//    dsElevation.DrawImage(Statics.BitmapOverworld,
+//        new Rect(x* Statics.OverworldTileResolution, y* Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+//        new Rect(Statics.OverworldTileForest.X, Statics.OverworldTileForest.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+//}
+//else {
+//    dsElevation.DrawImage(Statics.BitmapOverworld,
+//        new Rect(x* Statics.OverworldTileResolution, y* Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+//        new Rect(Statics.OverworldTileMountain.X, Statics.OverworldTileMountain.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+//}

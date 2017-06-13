@@ -112,9 +112,9 @@ namespace procedural_map {
         }
 
         private async void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {
-            Debug.Initialize();
-            Statics.Initialize(canvasMain);
-            Map.Initialize(sender.Device);
+            await Debug.Initialize();
+            await Statics.Initialize(canvasMain);
+            await Map.Initialize(sender.Device);
         }
 
         private void canvasMain_PointerMoved(object sender, PointerRoutedEventArgs e) {

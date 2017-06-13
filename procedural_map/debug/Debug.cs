@@ -1,4 +1,5 @@
-﻿using Microsoft.Graphics.Canvas.UI.Xaml;
+﻿using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,11 +42,11 @@ namespace procedural_map {
         public static string ChunkSizeMB { get; set; }
 
         public static List<TimedString> TimedStrings = new List<TimedString>();
-        public static List<Tuple<double, double, int>> HeightmapValues = new List<Tuple<double, double, int>>();
+        // public static List<Tuple<double, double, int>> HeightmapValues = new List<Tuple<double, double, int>>();
 
         public static void Draw(CanvasAnimatedDrawEventArgs args) {
             Strings.Clear();
-            try { Strings.Add("Elevation: " + Mouse.ElevationString); } catch (Exception e) { }
+            try { Strings.Add("Type: " + Mouse.TileTypeString); } catch (Exception e) { }
             Strings.Add("Max delta X: " + MaxDeltaX.ToString("F"));
             Strings.Add("Max delta Y: " + MaxDeltaY.ToString("F"));
             Strings.Add("Mouse: " + Mouse.CoordinatesString);
@@ -112,6 +113,14 @@ namespace procedural_map {
             }
         }
 
+        internal static async Task DetermineChunkSizeInMB(CanvasDevice device) {
+            long before = GC.GetTotalMemory(true);
+            Chunk c = await Task.Run(() => Chunk.Create(device, new PointInt(0, 0)));
+            long after = GC.GetTotalMemory(true);
+            GC.KeepAlive(c);
+            Debug.ChunkSizeMB = "Chunk size (MB): " + ((after - before) / 1000000.0f).ToString("F") + "MB";
+        }
+
         public static void Update(CanvasAnimatedUpdateEventArgs args) {
             OnScreenChunkCount = 0;
             lock (Debug.DebugCollectionsLock) {
@@ -139,12 +148,12 @@ namespace procedural_map {
             Windows.Storage.StorageFile logFile = await storageFolder.CreateFileAsync("log.txt", Windows.Storage.CreationCollisionOption.ReplaceExisting);
         }
 
-        internal static async Task LogHeightmapValues() {
-            Windows.Storage.StorageFolder storageFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
-            Windows.Storage.StorageFile logFile = await storageFolder.CreateFileAsync("log.txt", Windows.Storage.CreationCollisionOption.OpenIfExists);
-            foreach (var t in HeightmapValues) {
-                await Windows.Storage.FileIO.AppendTextAsync(logFile, t.Item1.ToString() + ", " + t.Item2.ToString() + ": " + t.Item3.ToString() + "\r\n");
-            }
-        }
+        //internal static async Task LogHeightmapValues() {
+        //    Windows.Storage.StorageFolder storageFolder = Windows.Storage.ApplicationData.Current.LocalFolder;
+        //    Windows.Storage.StorageFile logFile = await storageFolder.CreateFileAsync("log.txt", Windows.Storage.CreationCollisionOption.OpenIfExists);
+        //    foreach (var t in HeightmapValues) {
+        //        await Windows.Storage.FileIO.AppendTextAsync(logFile, t.Item1.ToString() + ", " + t.Item2.ToString() + ": " + t.Item3.ToString() + "\r\n");
+        //    }
+        //}
     }
 }

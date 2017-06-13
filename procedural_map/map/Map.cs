@@ -54,51 +54,35 @@ namespace procedural_map {
             }
         }
 
-        public async static void Initialize(CanvasDevice device) {
+        public async static Task Initialize(CanvasDevice device) {
             _device = device;
-            long before = GC.GetTotalMemory(true);
-            Chunk c = await Task.Run(() => Chunk.Create(_device, 0, 0));
-            long after = GC.GetTotalMemory(true);
-            GC.KeepAlive(c);
-            Debug.ChunkSizeMB = "Chunk size (MB): " + ((after - before) / 1000000.0f).ToString("F") + "MB";
-            lock (Chunk.CacheLock) {
-                ChunkCache.Add(c.Coordinates, c);
-            }
+            await Task.Run(() => Debug.DetermineChunkSizeInMB(device));
+            await Task.Run(() => CacheInitialChunks());
+            // await Debug.LogHeightmapValues();
+        }
 
-            c = await Task.Run(() => Chunk.Create(_device, 1, 0));
-            lock (Chunk.CacheLock) {
-                ChunkCache.Add(c.Coordinates, c);
-            }
-
+        public static async Task CacheInitialChunks() {
             Debug.AddTimedString("Creating initial chunks...", Colors.White);
-            for (int i = -_cachedChunkLoadRadius; i <= _cachedChunkLoadRadius; i++) {
-                for (int j = -_cachedChunkLoadRadius; j <= _cachedChunkLoadRadius; j++) {
-                    if (i == 0 && j == 0) { continue; }
-                    if (i == 1 && j == 0) { continue; }
-                    await Task.Run(() => CacheChunk(i, j, bSuppressOutput: true));
+            for(int x = 0; x < Chunk.MaxChunksVisibleX; x++) {
+                for(int y = 0; y < Chunk.MaxChunksVisibleY; y++) {
+                    await Task.Run(() => CacheChunk(new PointInt(x, y), bSuppressOutput: true));
                 }
             }
             Debug.AddTimedString("Initial chunks created!", Colors.Green);
             bPauseCaching = false;
-            await Debug.LogHeightmapValues();
         }
 
-        public static bool CacheChunk(int x, int y, bool bSuppressOutput = false) {
-            Chunk c;
-            PointInt point = new PointInt(x, y);
-
-            if (!ChunkCache.TryGetValue(point, out c)) {
-                c = Chunk.Create(_device, x, y);
-                Chunk temp;
+        public static bool CacheChunk(PointInt coordinates, bool bSuppressOutput = false) {
+            if (!ChunkCache.TryGetValue(coordinates, out Chunk c)) {
+                c = Chunk.Create(_device, coordinates);
                 lock (Chunk.CacheLock) {
-                    if (!ChunkCache.TryGetValue(point, out temp)) {
+                    if (!ChunkCache.TryGetValue(coordinates, out Chunk temp)) {
                         ChunkCache.Add(c.Coordinates, c);
                         if (!bSuppressOutput) {
                             Debug.AddTimedString("Caching: " + c.Coordinates.ToString(), Colors.White);
                         }
                     }
                 }
-
                 return true;
             }
             else {
@@ -115,13 +99,13 @@ namespace procedural_map {
             Stopwatch s = Stopwatch.StartNew();
 
             Debug.AddTimedString("Updating cache...", Colors.Yellow);
-            PointInt p = new PointInt(Camera.ChunkPositionX, Camera.ChunkPositionY);
-            if (CacheChunk(p.X, p.Y)) { nChunksAdded++; }
+            PointInt coordinates = new PointInt(Camera.ChunkPositionX, Camera.ChunkPositionY);
+            if (CacheChunk(coordinates)) { nChunksAdded++; }
 
             for (int i = -_cachedChunkLoadRadius; i <= Chunk.MaxChunksVisibleX + _cachedChunkLoadRadius; i++) {
                 for (int j = -_cachedChunkLoadRadius; j <= Chunk.MaxChunksVisibleY + _cachedChunkLoadRadius; j++) {
                     if (i == 0 && j == 0) { continue; }
-                    if (CacheChunk(p.X + i, p.Y + j, bSuppressOutput: true)) { nChunksAdded++; }
+                    if (CacheChunk(new PointInt(coordinates.X + i, coordinates.Y + j), bSuppressOutput: true)) { nChunksAdded++; }
                 }
             }
 
@@ -141,19 +125,11 @@ namespace procedural_map {
             Dictionary<PointInt, Chunk> swap = new Dictionary<PointInt, Chunk>();
             lock (Chunk.CacheLock) {
                 foreach (KeyValuePair<PointInt, Chunk> chunk in ChunkCache) {
-                    if (
-                        // depending on which side of the screen the chunk is relative to camera, unload threshold is different
-                        // note that camera is anchored at top-left of screen
-                        // need to account for on-screen chunks in addition to unload radius
-                        ((chunk.Value.Coordinates.X > Camera.ChunkPositionX) && (chunk.Value.Coordinates.X - Camera.ChunkPositionX < _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleX))
-                        || ((chunk.Value.Coordinates.X <= Camera.ChunkPositionX) && (Camera.ChunkPositionX - chunk.Value.Coordinates.X) < _cachedChunkUnloadThreshold)
-                        &&
-                        ((chunk.Value.Coordinates.Y > Camera.ChunkPositionY) && (chunk.Value.Coordinates.Y - Camera.ChunkPositionY) < _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleY)
-                        || ((chunk.Value.Coordinates.Y <= Camera.ChunkPositionY) && (Camera.ChunkPositionY - chunk.Value.Coordinates.Y) < _cachedChunkUnloadThreshold)
-                        ) {
-                        swap.Add(chunk.Key, chunk.Value);
-                    }
-                    //&& (Math.Abs(Camera.ChunkPositionY - chunk.Value.Coordinates.Y) < _cachedChunkUnloadThreshold)) {
+                    if (chunk.Value.Coordinates.X < Camera.ChunkPositionX - _cachedChunkUnloadThreshold) { continue; }
+                    if (chunk.Value.Coordinates.X > Camera.ChunkPositionX + _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleX) { continue; }
+                    if (chunk.Value.Coordinates.Y < Camera.ChunkPositionY - _cachedChunkUnloadThreshold) { continue; }
+                    if (chunk.Value.Coordinates.Y > Camera.ChunkPositionY + _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleY) { continue; }
+                    swap.Add(chunk.Key, chunk.Value);
                 }
             }
             int nChunksRemoved = ChunkCache.Count - swap.Count;
@@ -166,8 +142,8 @@ namespace procedural_map {
             bCleanupInProgress = false;
         }
 
-        public static int Elevation(int chunkX, int chunkY, int tileX, int tileY) {
-            return ChunkCache[new PointInt(chunkX, chunkY)].Tiles[tileX, tileY].Elevation;
+        public static Tile.TILE_TYPE TileType(int chunkX, int chunkY, int tileX, int tileY) {
+            return ChunkCache[new PointInt(chunkX, chunkY)].Tiles[tileX, tileY].TileType;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace procedural_map {
             return Color.FromArgb(255, red, green, blue);
         }
 
-        internal static async void Initialize(CanvasAnimatedControl canvasMain) {
+        internal static async Task Initialize(CanvasAnimatedControl canvasMain) {
             ClientWidth = canvasMain.ActualWidth;
             ClientHeight = canvasMain.ActualHeight;
             BitmapOverworld = await CanvasBitmap.LoadAsync(canvasMain.Device, "images/overworld.png");
@@ -33,5 +33,11 @@ namespace procedural_map {
         public static PointInt OverworldTileWater = new PointInt(128, 0);
         public static PointInt OverworldTileGrassLight = new PointInt(160, 0);
         public static int OverworldTileResolution = 32;
+
+        public static int ElevationThresholdWater = 70;
+        public static int ElevationThresholdDesert = 80;
+        public static int ElevationThresholdGrassLight = 100;
+        public static int ElevationThresholdGrass = 130;
+        public static int ElevationThresholdForest = 150;
     }
 }

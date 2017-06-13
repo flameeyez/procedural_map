@@ -89,7 +89,7 @@ namespace procedural_map {
         public static string ChunkString { get { return "{" + ChunkX.ToString() + ", " + ChunkY.ToString() + "}"; } }
         public static string TileString { get { return "{" + TileX.ToString() + ", " + TileY.ToString() + "}"; } }
         public static string AbsoluteTileString { get { return "{" + AbsoluteTileX.ToString() + ", " + AbsoluteTileY.ToString() + "}"; } }
-        public static string ElevationString { get { return Map.Elevation(ChunkX, ChunkY, TileX, TileY).ToString(); } }
+        public static string TileTypeString { get { return Map.TileType(ChunkX, ChunkY, TileX, TileY).ToString(); } }
 
         public static bool LeftButtonDown { get; set; }
         public static bool RightButtonDown { get; set; }

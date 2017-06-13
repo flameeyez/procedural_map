@@ -13,7 +13,7 @@ namespace procedural_map {
     static class Debug {
         public enum DRAW_MODE {
             BACKGROUND_COLOR,
-            ELEVATION
+            TERRAIN
         }
 
         public static DRAW_MODE DrawMode = DRAW_MODE.BACKGROUND_COLOR;

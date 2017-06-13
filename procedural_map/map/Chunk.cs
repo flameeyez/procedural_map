@@ -22,7 +22,7 @@ namespace procedural_map {
         public static int MaxChunksVisibleY { get { return _maxChunksVisibleY; } }
 
         public CanvasRenderTarget RenderTargetBackgroundColor { get; set; }
-        public CanvasRenderTarget RenderTargetElevationMountains { get; set; }
+        public CanvasRenderTarget RenderTargetTerrain { get; set; }
 
         public PointInt Coordinates { get; set; }
         public int PixelCoordinateX { get { return Coordinates.X * ChunkSideInPixels; } }
@@ -56,11 +56,11 @@ namespace procedural_map {
                                 RenderTargetBackgroundColor.Bounds.Width * Map.TILE_RESOLUTION,
                                 RenderTargetBackgroundColor.Bounds.Height * Map.TILE_RESOLUTION));
                         break;
-                    case Debug.DRAW_MODE.ELEVATION:
-                        args.DrawingSession.DrawImage(RenderTargetElevationMountains,
+                    case Debug.DRAW_MODE.TERRAIN:
+                        args.DrawingSession.DrawImage(RenderTargetTerrain,
                             new Rect(ScreenPositionX, ScreenPositionY,
-                                RenderTargetElevationMountains.Bounds.Width * Map.TILE_RESOLUTION / Statics.OverworldTileResolution,
-                                RenderTargetElevationMountains.Bounds.Height * Map.TILE_RESOLUTION / Statics.OverworldTileResolution));
+                                RenderTargetTerrain.Bounds.Width * Map.TILE_RESOLUTION / Statics.OverworldTileResolution,
+                                RenderTargetTerrain.Bounds.Height * Map.TILE_RESOLUTION / Statics.OverworldTileResolution));
                         //new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
                         break;
                 }
@@ -89,10 +89,10 @@ namespace procedural_map {
             // draw chunk to render target
             Color _debugBackgroundColor = Statics.RandomColor();
             chunk.RenderTargetBackgroundColor = new CanvasRenderTarget(device, ChunkSideLength, ChunkSideLength, 96);
-            chunk.RenderTargetElevationMountains = new CanvasRenderTarget(device, ChunkSideLength * Statics.OverworldTileResolution, ChunkSideLength * Statics.OverworldTileResolution, 96);
+            chunk.RenderTargetTerrain = new CanvasRenderTarget(device, ChunkSideLength * Statics.OverworldTileResolution, ChunkSideLength * Statics.OverworldTileResolution, 96);
             //chunk.RenderTargetElevation = new CanvasRenderTarget(device, ChunkSideLength * Statics.OverworldTileResolution, ChunkSideLength * Statics.OverworldTileResolution, 96);
             using (CanvasDrawingSession dsBackgroundColor = chunk.RenderTargetBackgroundColor.CreateDrawingSession()) {
-                using (CanvasDrawingSession dsElevation = chunk.RenderTargetElevationMountains.CreateDrawingSession()) {
+                using (CanvasDrawingSession dsElevation = chunk.RenderTargetTerrain.CreateDrawingSession()) {
                     for (int x = 0; x < ChunkSideLength; x++) {
                         for (int y = 0; y < ChunkSideLength; y++) {
                             // background color

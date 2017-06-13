@@ -51,7 +51,7 @@ namespace procedural_map {
                     Debug.Reset();
                     break;
                 case Windows.System.VirtualKey.D:
-                    Debug.DrawMode = (Debug.DrawMode == Debug.DRAW_MODE.BACKGROUND_COLOR) ? Debug.DRAW_MODE.ELEVATION : Debug.DRAW_MODE.BACKGROUND_COLOR;
+                    Debug.DrawMode = (Debug.DrawMode == Debug.DRAW_MODE.BACKGROUND_COLOR) ? Debug.DRAW_MODE.TERRAIN : Debug.DRAW_MODE.BACKGROUND_COLOR;
                     break;
                 case Windows.System.VirtualKey.Subtract:
                     if (Map.TILE_RESOLUTION > 4) { Map.TILE_RESOLUTION /= 2; }

@@ -10,6 +10,7 @@
 
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <canvas:CanvasAnimatedControl x:Name="canvasMain" 
+            
             Draw="canvasMain_Draw" 
             Update="canvasMain_Update"
             ClearColor="Black" 

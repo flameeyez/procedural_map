@@ -54,7 +54,11 @@ namespace procedural_map {
                         args.DrawingSession.DrawImage(RenderTargetBackgroundColor, new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
                         break;
                     case Debug.DRAW_MODE.ELEVATION:
-                        args.DrawingSession.DrawImage(RenderTargetElevation, new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
+                        args.DrawingSession.DrawImage(RenderTargetElevation,
+                            new Rect(ScreenPositionX, ScreenPositionY, 
+                                RenderTargetElevation.Bounds.Width * Map.TILE_RESOLUTION / Statics.OverworldTileResolution, 
+                                RenderTargetElevation.Bounds.Height * Map.TILE_RESOLUTION / Statics.OverworldTileResolution));
+                            //new Vector2((float)ScreenPositionX, (float)ScreenPositionY));
                         break;
                 }
             }
@@ -82,17 +86,59 @@ namespace procedural_map {
             // draw chunk to render target
             Color _debugBackgroundColor = Statics.RandomColor();
             chunk.RenderTargetBackgroundColor = new CanvasRenderTarget(device, ChunkSideInPixels, ChunkSideInPixels, 96);
-            chunk.RenderTargetElevation = new CanvasRenderTarget(device, ChunkSideInPixels, ChunkSideInPixels, 96);
+            chunk.RenderTargetElevation = new CanvasRenderTarget(device, ChunkSideLength * Statics.OverworldTileResolution, ChunkSideLength * Statics.OverworldTileResolution, 96);
             using (CanvasDrawingSession dsBackgroundColor = chunk.RenderTargetBackgroundColor.CreateDrawingSession()) {
                 using (CanvasDrawingSession dsElevation = chunk.RenderTargetElevation.CreateDrawingSession()) {
                     for (int x = 0; x < ChunkSideLength; x++) {
                         for (int y = 0; y < ChunkSideLength; y++) {
                             // background color
-                            dsBackgroundColor.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), _debugBackgroundColor);
+                            dsBackgroundColor.FillRectangle(new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution), _debugBackgroundColor);
                             //dsBackgroundColor.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
 
                             // elevation
-                            dsElevation.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Chunk.ElevationColor(chunk.Tiles[x, y].Elevation));
+                            if (chunk.Tiles[x, y].Elevation < 70) {
+                                dsElevation.DrawImage(Statics.BitmapOverworld,
+                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                    new Rect(Statics.OverworldTileWater.X, Statics.OverworldTileWater.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+                            }
+                            else if(chunk.Tiles[x,y].Elevation < 80) {
+                                dsElevation.DrawImage(Statics.BitmapOverworld,
+                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                    new Rect(Statics.OverworldTileDesert.X, Statics.OverworldTileDesert.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+                            }
+                            else if (chunk.Tiles[x, y].Elevation < 100) {
+                                dsElevation.DrawImage(Statics.BitmapOverworld,
+                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                    new Rect(Statics.OverworldTileGrassLight.X, Statics.OverworldTileGrassLight.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+                            }
+                            else if (chunk.Tiles[x, y].Elevation < 130) {
+                                dsElevation.DrawImage(Statics.BitmapOverworld,
+                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                    new Rect(Statics.OverworldTileGrass.X, Statics.OverworldTileGrass.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+                            }
+                            else if (chunk.Tiles[x, y].Elevation < 150) {
+                                dsElevation.DrawImage(Statics.BitmapOverworld,
+                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                    new Rect(Statics.OverworldTileForest.X, Statics.OverworldTileForest.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+                            }
+                            else {
+                                dsElevation.DrawImage(Statics.BitmapOverworld,
+                                    new Rect(x * Statics.OverworldTileResolution, y * Statics.OverworldTileResolution, Statics.OverworldTileResolution, Statics.OverworldTileResolution),
+                                    new Rect(Statics.OverworldTileMountain.X, Statics.OverworldTileMountain.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+                            }
+
+                            // args.DrawingSession.DrawImage(Statics.BitmapOverworld, new Rect(x, y, resolution, resolution), new Rect(Statics.OverworldTileForest.X, Statics.OverworldTileForest.Y, Statics.OverworldTileResolution, Statics.OverworldTileResolution));
+                            //public static CanvasBitmap BitmapOverworld { get; set; }
+                            //public static PointInt OverworldTileMountain = new PointInt(0, 0);
+                            //public static PointInt OverworldTileGrass = new PointInt(32, 0);
+                            //public static PointInt OverworldTileForest = new PointInt(64, 0);
+                            //public static PointInt OverworldTileDesert = new PointInt(96, 0);
+                            //public static PointInt OverworldTileWater = new PointInt(128, 0);
+                            //public static PointInt OverworldTileGrassLight = new PointInt(160, 0);
+                            //public static int OverworldTileResolution = 32;
+
+
+                            //dsElevation.FillRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Chunk.ElevationColor(chunk.Tiles[x, y].Elevation));
                             //dsElevation.DrawRectangle(new Rect(x * Map.TILE_RESOLUTION, y * Map.TILE_RESOLUTION, Map.TILE_RESOLUTION, Map.TILE_RESOLUTION), Colors.Black);
                         }
                     }

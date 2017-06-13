@@ -53,10 +53,18 @@ namespace procedural_map {
                 case Windows.System.VirtualKey.D:
                     Debug.DrawMode = (Debug.DrawMode == Debug.DRAW_MODE.BACKGROUND_COLOR) ? Debug.DRAW_MODE.ELEVATION : Debug.DRAW_MODE.BACKGROUND_COLOR;
                     break;
+                case Windows.System.VirtualKey.Subtract:
+                    if (Map.TILE_RESOLUTION > 4) { Map.TILE_RESOLUTION /= 2; }
+                    break;
+                case Windows.System.VirtualKey.Add:
+                    if(Map.TILE_RESOLUTION < 64) { Map.TILE_RESOLUTION *= 2; }
+                    break;
             }
         }
 
         private void canvasMain_Draw(ICanvasAnimatedControl sender, CanvasAnimatedDrawEventArgs args) {
+            args.DrawingSession.Antialiasing = Microsoft.Graphics.Canvas.CanvasAntialiasing.Aliased;
+
             if (fullLoopTimer != null) {
                 fullLoopTimer.Stop();
                 Debug.LastFullLoopTime = fullLoopTimer.ElapsedMilliseconds;

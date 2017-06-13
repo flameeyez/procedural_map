@@ -105,7 +105,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="map\Map.cs" />
-    <Compile Include="PointInt.cs" />
+    <Compile Include="utility\PointInt.cs" />
     <Compile Include="utility\Mouse.cs" />
     <Compile Include="pathfinding\BinaryHeap.cs" />
     <Compile Include="pathfinding\HeapNode.cs" />
@@ -119,7 +119,7 @@
     <Compile Include="utility\Statics.cs" />
     <Compile Include="map\Tile.cs" />
     <Compile Include="debug\TimedString.cs" />
-    <Compile Include="misc\Vector2RowColumn.cs" />
+    <Compile Include="pathfinding\Vector2RowColumn.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -128,6 +128,9 @@
     <None Include="procedural_map_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="images\overworld.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

@@ -37,9 +37,13 @@ namespace procedural_map {
                 && (ScreenPositionY + ChunkSideInPixels - 1 >= 0 && ScreenPositionY < Statics.ClientHeight);
         }
 
-        static Chunk() {
+        public static void RefreshStaticData() {
             _maxChunksVisibleX = (int)Math.Ceiling(Statics.ClientWidth / ChunkSideInPixels) + 1;
             _maxChunksVisibleY = (int)Math.Ceiling(Statics.ClientHeight / ChunkSideInPixels) + 1;
+        }
+
+        static Chunk() {
+            RefreshStaticData();
         }
 
         public Chunk(CanvasDevice device, PointInt coordinates) {

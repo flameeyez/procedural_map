@@ -11,9 +11,9 @@ using Windows.UI;
 namespace procedural_map {
     static class Map {
         private static CanvasDevice _device;
-        private static int _cachedChunkLoadRadius = 5;//3;
-        private static int _cachedChunkUnloadThreshold = 10;//5;
-        public static int TILE_RESOLUTION = 4;//32;
+        private static int _cachedChunkLoadRadius = 2;//5;//3;
+        private static int _cachedChunkUnloadThreshold = 2;//10;//5;
+        public static int TILE_RESOLUTION = 32;//4;//32;
 
         private static Dictionary<PointInt, Chunk> ChunkCache = new Dictionary<PointInt, Chunk>();
         public static int DebugChunkCount { get { return ChunkCache.Count; } }
@@ -63,8 +63,8 @@ namespace procedural_map {
 
         public static async Task CacheInitialChunks() {
             Debug.AddTimedString("Creating initial chunks...", Colors.White);
-            for(int x = 0; x < Chunk.MaxChunksVisibleX; x++) {
-                for(int y = 0; y < Chunk.MaxChunksVisibleY; y++) {
+            for (int x = 0; x < Chunk.MaxChunksVisibleX; x++) {
+                for (int y = 0; y < Chunk.MaxChunksVisibleY; y++) {
                     await Task.Run(() => CacheChunk(new PointInt(x, y), bSuppressOutput: true));
                 }
             }
@@ -98,47 +98,68 @@ namespace procedural_map {
             int nChunksAdded = 0;
             Stopwatch s = Stopwatch.StartNew();
 
-            Debug.AddTimedString("Updating cache...", Colors.Yellow);
             PointInt coordinates = new PointInt(Camera.ChunkPositionX, Camera.ChunkPositionY);
-            if (CacheChunk(coordinates)) { nChunksAdded++; }
-
             for (int i = -_cachedChunkLoadRadius; i <= Chunk.MaxChunksVisibleX + _cachedChunkLoadRadius; i++) {
                 for (int j = -_cachedChunkLoadRadius; j <= Chunk.MaxChunksVisibleY + _cachedChunkLoadRadius; j++) {
-                    if (i == 0 && j == 0) { continue; }
-                    if (CacheChunk(new PointInt(coordinates.X + i, coordinates.Y + j), bSuppressOutput: true)) { nChunksAdded++; }
+                    if (CacheChunk(new PointInt(coordinates.X + i, coordinates.Y + j), bSuppressOutput: true)) {
+                        // show debug message when caching first chunk
+                        if (nChunksAdded == 0) { Debug.AddTimedString("Updating cache...", Colors.Yellow); }
+                        nChunksAdded++;
+                    }
                 }
             }
 
             s.Stop();
-            Debug.AddTimedString("Cache update took " + s.ElapsedMilliseconds.ToString() + "ms", Colors.White);
-            Debug.AddTimedString("Chunks added: " + nChunksAdded.ToString(), Colors.Green);
+
+            // report if chunks were added or if elapsed time > 0
+            if (nChunksAdded > 0 || s.ElapsedMilliseconds > 0) {
+                Debug.AddTimedString("Cache update took " + s.ElapsedMilliseconds.ToString() + "ms", Colors.White);
+                Debug.AddTimedString("Chunks added: " + nChunksAdded.ToString(), Colors.Green);
+            }
+
             bCacheInProgress = false;
         }
 
         public static void CacheCleanup() {
             if (bPauseCaching) { return; }
-            if (bCleanupInProgress) { Debug.AddTimedString("Last cleanup not finished. Aborting...", Colors.Pink); }
+            if (bCleanupInProgress) { Debug.AddTimedString("Last cleanup not finished. Aborting...", Colors.Pink); return; }
 
+            bool bCleanupPromptShown = false;
             bCleanupInProgress = true;
             Stopwatch s = Stopwatch.StartNew();
-            Debug.AddTimedString("Cleaning up cache...", Colors.Yellow);
+
             Dictionary<PointInt, Chunk> swap = new Dictionary<PointInt, Chunk>();
             lock (Chunk.CacheLock) {
                 foreach (KeyValuePair<PointInt, Chunk> chunk in ChunkCache) {
-                    if (chunk.Value.Coordinates.X < Camera.ChunkPositionX - _cachedChunkUnloadThreshold) { continue; }
-                    if (chunk.Value.Coordinates.X > Camera.ChunkPositionX + _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleX) { continue; }
-                    if (chunk.Value.Coordinates.Y < Camera.ChunkPositionY - _cachedChunkUnloadThreshold) { continue; }
-                    if (chunk.Value.Coordinates.Y > Camera.ChunkPositionY + _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleY) { continue; }
+                    if ((chunk.Value.Coordinates.X < Camera.ChunkPositionX - _cachedChunkUnloadThreshold)
+                     || (chunk.Value.Coordinates.X > Camera.ChunkPositionX + _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleX)
+                     || (chunk.Value.Coordinates.Y < Camera.ChunkPositionY - _cachedChunkUnloadThreshold)
+                     || (chunk.Value.Coordinates.Y > Camera.ChunkPositionY + _cachedChunkUnloadThreshold + Chunk.MaxChunksVisibleY)) {
+                        // show debug message when removing first chunk
+                        if (!bCleanupPromptShown) {
+                            bCleanupPromptShown = true;
+                            Debug.AddTimedString("Cleaning up cache...", Colors.Yellow);
+                        }
+                        continue;
+                    }
                     swap.Add(chunk.Key, chunk.Value);
                 }
             }
+
             int nChunksRemoved = ChunkCache.Count - swap.Count;
+
             lock (Chunk.CacheLock) {
                 ChunkCache = swap;
             }
+
             s.Stop();
-            Debug.AddTimedString("Cache cleanup took " + s.ElapsedMilliseconds.ToString() + "ms", Colors.White);
-            Debug.AddTimedString("Chunks removed: " + nChunksRemoved.ToString(), Colors.Red);
+
+            // report if chunks were removed or if elapsed time > 0
+            if (nChunksRemoved > 0 || s.ElapsedMilliseconds > 0) {
+                Debug.AddTimedString("Cache cleanup took " + s.ElapsedMilliseconds.ToString() + "ms", Colors.White);
+                Debug.AddTimedString("Chunks removed: " + nChunksRemoved.ToString(), Colors.Red);
+            }
+
             bCleanupInProgress = false;
         }
 

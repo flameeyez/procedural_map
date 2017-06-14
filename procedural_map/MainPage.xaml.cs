@@ -1,4 +1,5 @@
-﻿using Microsoft.Graphics.Canvas.UI;
+﻿using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,7 @@ using Windows.UI.Xaml.Navigation;
 namespace procedural_map {
     public sealed partial class MainPage : Page {
         Stopwatch fullLoopTimer;
+        List<Sprite> Sprites = new List<Sprite>();
 
         public MainPage() {
             this.InitializeComponent();
@@ -54,10 +56,16 @@ namespace procedural_map {
                     Debug.DrawMode = (Debug.DrawMode == Debug.DRAW_MODE.BACKGROUND_COLOR) ? Debug.DRAW_MODE.TERRAIN : Debug.DRAW_MODE.BACKGROUND_COLOR;
                     break;
                 case Windows.System.VirtualKey.Subtract:
-                    if (Map.TILE_RESOLUTION > 4) { Map.TILE_RESOLUTION /= 2; }
+                    if (Map.TILE_RESOLUTION > 4) {
+                        Map.TILE_RESOLUTION /= 2;
+                        Chunk.RefreshStaticData();
+                    }
                     break;
                 case Windows.System.VirtualKey.Add:
-                    if(Map.TILE_RESOLUTION < 64) { Map.TILE_RESOLUTION *= 2; }
+                    if(Map.TILE_RESOLUTION < 64) {
+                        Map.TILE_RESOLUTION *= 2;
+                        Chunk.RefreshStaticData();
+                    }
                     break;
             }
         }
@@ -92,6 +100,10 @@ namespace procedural_map {
             Debug.LastDrawMouseTime = sMouse.ElapsedMilliseconds;
             Debug.LastDrawDebugTime = sDebug.ElapsedMilliseconds;
             Debug.LastDrawMapTime = sMap.ElapsedMilliseconds;
+
+            foreach(Sprite sprite in Sprites) {
+                sprite.Draw(args);
+            }
         }
 
         private async void canvasMain_Update(ICanvasAnimatedControl sender, CanvasAnimatedUpdateEventArgs args) {
@@ -109,12 +121,25 @@ namespace procedural_map {
             Debug.LastDebugUpdateTime = d.ElapsedMilliseconds;
 
             Camera.Update(args);
+
+            foreach(Sprite sprite in Sprites) {
+                sprite.Update(args);
+            }
         }
 
         private async void canvasMain_CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args) {
             await Debug.Initialize();
             await Statics.Initialize(canvasMain);
             await Map.Initialize(sender.Device);
+
+            CanvasBitmap characterMap = await CanvasBitmap.LoadAsync(sender, "images/characters.png");
+            int maxX = 1920 / Map.TILE_RESOLUTION;
+            int maxY = 1080 / Map.TILE_RESOLUTION;
+            for(int i = 0; i < 50; i++) {
+                int x = Random.Next(maxX) * Map.TILE_RESOLUTION;
+                int y = Random.Next(maxY) * Map.TILE_RESOLUTION;
+                Sprites.Add(new Sprite(characterMap, 64, new PointInt(x, y)));
+            }
         }
 
         private void canvasMain_PointerMoved(object sender, PointerRoutedEventArgs e) {

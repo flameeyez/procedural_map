@@ -105,6 +105,12 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="map\Map.cs" />
+    <Compile Include="sprite\Sprite.cs" />
+    <Compile Include="sprite\SpriteAnimation.cs" />
+    <Compile Include="sprite\SpriteAnimationDefinitions.cs" />
+    <Compile Include="sprite\SpriteAnimationFrame.cs" />
+    <Compile Include="sprite\SpriteAnimationSet.cs" />
+    <Compile Include="sprite\SpriteSheet.cs" />
     <Compile Include="utility\PointInt.cs" />
     <Compile Include="utility\Mouse.cs" />
     <Compile Include="pathfinding\BinaryHeap.cs" />
@@ -128,6 +134,9 @@
     <None Include="procedural_map_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="images\characters.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="images\overworld.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -12,17 +12,28 @@ using Microsoft.Graphics.Canvas;
 namespace procedural_map {
     class Sprite {
         //public SpriteAnimationSet SpriteAnimationSet { get; set; }
-        public PointInt Position { get; set; }
+        public PointInt AbsolutePosition { get; set; }
+        public PointInt ScreenPosition { get { return new PointInt(AbsolutePosition.X - Camera.PositionX, AbsolutePosition.Y - Camera.PositionY); } }
         private SpriteSheet _spriteSheet;
         private SPRITE_ANIMATION _currentAnimationState;
         private SpriteAnimation _currentAnimation;
         //private int _frameIndex = 0;
 
+        public bool IsOnScreen {
+            get {
+                if (AbsolutePosition.X < Camera.PositionX - Map.TILE_RESOLUTION) { return false; }
+                if (AbsolutePosition.X > Camera.PositionX + Statics.ClientWidth) { return false; }
+                if (AbsolutePosition.Y < Camera.PositionY - Map.TILE_RESOLUTION) { return false; }
+                if (AbsolutePosition.Y > Camera.PositionY + Statics.ClientHeight) { return false; }
+                return true;
+            }
+        }
+
         private Queue<SPRITE_ANIMATION> _stateQueue = new Queue<SPRITE_ANIMATION>();
 
         private Sprite() { }
-        public Sprite(CanvasBitmap image, int imageResolution, PointInt position) {
-            Position = position;
+        public Sprite(CanvasBitmap image, int imageResolution, PointInt absolutePosition) {
+            AbsolutePosition = absolutePosition;
             _spriteSheet = new SpriteSheet(image, imageResolution);
 
             _currentAnimationState = SPRITE_ANIMATION.IDLE_DOWN;
@@ -30,7 +41,9 @@ namespace procedural_map {
         }
 
         public void Draw(CanvasAnimatedDrawEventArgs args) {
-            _currentAnimation.Draw(_spriteSheet, Position, args);
+            if (IsOnScreen) {
+                _currentAnimation.Draw(_spriteSheet, ScreenPosition, args);
+            }
         }
         public void Update(CanvasAnimatedUpdateEventArgs args) {
             UpdatePosition();
@@ -40,20 +53,20 @@ namespace procedural_map {
         private void UpdatePosition() {
             switch (_currentAnimationState) {
                 case SPRITE_ANIMATION.WALK_DOWN:
-                    Position.Y += 1;
-                    if (Position.Y % Map.TILE_RESOLUTION == 0) { SetNextState(); }
+                    AbsolutePosition.Y += 1;
+                    if (AbsolutePosition.Y % Map.TILE_RESOLUTION == 0) { SetNextState(); }
                     break;
                 case SPRITE_ANIMATION.WALK_UP:
-                    Position.Y -= 1;
-                    if (Position.Y % Map.TILE_RESOLUTION == 0) { SetNextState(); }
+                    AbsolutePosition.Y -= 1;
+                    if (AbsolutePosition.Y % Map.TILE_RESOLUTION == 0) { SetNextState(); }
                     break;
                 case SPRITE_ANIMATION.WALK_LEFT:
-                    Position.X -= 1;
-                    if (Position.X % Map.TILE_RESOLUTION == 0) { SetNextState(); }
+                    AbsolutePosition.X -= 1;
+                    if (AbsolutePosition.X % Map.TILE_RESOLUTION == 0) { SetNextState(); }
                     break;
                 case SPRITE_ANIMATION.WALK_RIGHT:
-                    Position.X += 1;
-                    if (Position.X % Map.TILE_RESOLUTION == 0) { SetNextState(); }
+                    AbsolutePosition.X += 1;
+                    if (AbsolutePosition.X % Map.TILE_RESOLUTION == 0) { SetNextState(); }
                     break;
                 case SPRITE_ANIMATION.IDLE_DOWN:
                 case SPRITE_ANIMATION.IDLE_UP:

@@ -135,7 +135,7 @@ namespace procedural_map {
             CanvasBitmap characterMap = await CanvasBitmap.LoadAsync(sender, "images/characters.png");
             int maxX = 1920 / Map.TILE_RESOLUTION;
             int maxY = 1080 / Map.TILE_RESOLUTION;
-            for(int i = 0; i < 50; i++) {
+            for(int i = 0; i < 500; i++) {
                 int x = Random.Next(maxX) * Map.TILE_RESOLUTION;
                 int y = Random.Next(maxY) * Map.TILE_RESOLUTION;
                 Sprites.Add(new Sprite(characterMap, 64, new PointInt(x, y)));
